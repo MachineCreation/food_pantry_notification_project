@@ -2,6 +2,15 @@
 
 Desktop application project for managing food pantry notifications. The current codebase is an early-stage Python application built around a Tkinter GUI, a SQLite database layer, and room for notification, template, login, and review-log features under the `app/GUI` package.
 
+## Contributors
+
+| Name | GitHub |
+|------|--------|
+| Joseph Egan | [MachineCreations](https://github.com/MachineCreations) |
+| Justin Crump | [ZipTy319](https://github.com/ZipTy319) |
+| Nkobula Monzali | [PCC-NM](https://github.com/PCC-NM) |
+| Lloyd Truong | [Profile](https://github.com/) |
+
 ## Current Status
 
 This repository currently includes:
@@ -86,11 +95,10 @@ Notes:
 
 - `.env` is ignored by git.
 - The SQLite database file `app/Database/database.db` is also ignored by git.
-- The helper functions to create the default admin user and dummy users exist in the database setup module, but they are not called automatically by the current `main()` setup flow.
 
 ## Database Initialization
 
-Run the database bootstrap script through `test.py`:
+Run the database bootstrap script through `rebuild_database.py`:
 
 ```powershell
 python rebuild_database.py
@@ -99,9 +107,13 @@ python rebuild_database.py
 This currently:
 
 - Creates `app/Database/database.db` if it does not already exist
+- Drops the `roles` table
 - Creates the `roles` table
 - Inserts the default roles: `admin`, `subscriber`, and `member`
+- Drops the `roles` table
 - Creates the `users` table
+- Creates the default admin user
+- Fills in some dummy user names and roles
 
 ## Running The Application
 
