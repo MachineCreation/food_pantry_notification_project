@@ -9,6 +9,8 @@
 # Description: Main root app file for initiating instance
 
 # Local imports
+from logging import root
+
 from app.GUI.GUI import GUI
 
 # python imports
@@ -20,8 +22,13 @@ def main():
     root = Tk()
     root.title("Food Pantry Notification App")
 
-    gui = GUI(root)
+    # future injection point
+    app_context = {}
 
+    # create the GUI instance
+    gui = GUI(root, app_context)
+
+    # start the main event loop
     root.mainloop()
 
 if __name__ == "__main__":
