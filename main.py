@@ -9,27 +9,34 @@
 # Description: Main root app file for initiating instance
 
 # Local imports
-from logging import root
-
 from app.GUI.GUI import GUI
 
 # python imports
-from tkinter import Tk
 
-def main():
 
-    # create the main tkinter root window
-    root = Tk()
-    root.title("Food Pantry Notification App")
+class FoodPantryProject():
+    '''
+    main GUI logic for app
+    '''
+    __gui: GUI | None = None
+    __app_context: dict | None = None
 
-    # future injection point
-    app_context = {}
+    def __init__(self):
+        self.__app_context = {}
+        self.__gui = GUI(self.__app_context)
 
-    # create the GUI instance
-    gui = GUI(root, app_context)
-
-    # start the main event loop
-    root.mainloop()
+    def run(self):
+        '''
+        run the app
+        '''
+        try:
+            if self.__gui:
+                self.__gui.run_gui()
+            else:
+                raise ValueError("No GUI found in instance")
+        except ValueError as e:
+            print(f'{e}')
 
 if __name__ == "__main__":
-    main()
+    app = FoodPantryProject()
+    app.run()
