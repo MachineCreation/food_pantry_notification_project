@@ -5,10 +5,13 @@
     <customwidgets />
     <resources />
   </project>
-  <object class="ttk.Frame" id="SignInUpChoice" named="True">
+  <object class="ttk.Frame" id="SignIn" named="True">
     <property name="height">200</property>
     <property name="width">200</property>
-    <layout manager="pack" />
+    <layout manager="grid">
+      <property name="column">0</property>
+      <property name="row">0</property>
+    </layout>
     <containerlayout manager="grid">
       <property name="anchor">center</property>
     </containerlayout>
@@ -138,8 +141,7 @@
               <property name="anchor">center</property>
             </containerlayout>
             <child>
-              <object class="ttk.Button" id="signInButton" named="True">
-                <property name="class_">Button</property>
+              <object class="ttk.Button" id="sign_in_button" named="True">
                 <property name="text" translatable="yes">Sign In</property>
                 <layout manager="grid">
                   <property name="column">0</property>
@@ -149,8 +151,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="signUpButton" named="True">
-                <property name="class_">Button</property>
+              <object class="ttk.Button" id="sign_up_button" named="True">
                 <property name="text" translatable="yes">Sign Up</property>
                 <layout manager="grid">
                   <property name="column">1</property>

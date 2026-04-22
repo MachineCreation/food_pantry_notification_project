@@ -37,6 +37,7 @@ class FoodPantryProject():
         except ValueError as e:
             print(f'{e}')
 
+
 if __name__ == "__main__":
     app = FoodPantryProject()
     app.run()

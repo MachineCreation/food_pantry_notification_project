@@ -5,10 +5,13 @@
     <customwidgets />
     <resources />
   </project>
-  <object class="ttk.Frame" id="SignInUpChoice" named="True">
+  <object class="ttk.Frame" id="SignUp" named="True">
     <property name="height">200</property>
     <property name="width">200</property>
-    <layout manager="pack" />
+    <layout manager="grid">
+      <property name="column">0</property>
+      <property name="row">0</property>
+    </layout>
     <containerlayout manager="grid">
       <property name="anchor">center</property>
     </containerlayout>
@@ -62,6 +65,7 @@
     <child>
       <object class="ttk.Frame" id="frame8">
         <property name="height">200</property>
+        <property name="takefocus">true</property>
         <property name="width">200</property>
         <layout manager="grid">
           <property name="column">0</property>
@@ -100,8 +104,7 @@
               <property name="anchor">center</property>
             </containerlayout>
             <child>
-              <object class="ttk.Button" id="signInButton" named="True">
-                <property name="class_">Button</property>
+              <object class="ttk.Button" id="sign_in_button" named="True">
                 <property name="text" translatable="yes">Sign In</property>
                 <layout manager="grid">
                   <property name="column">0</property>
@@ -111,8 +114,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="signUpButton" named="True">
-                <property name="class_">Button</property>
+              <object class="ttk.Button" id="sign_up_button" named="True">
                 <property name="text" translatable="yes">Sign Up</property>
                 <layout manager="grid">
                   <property name="column">1</property>
@@ -122,8 +124,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="clearButton" named="True">
-                <property name="class_">Button</property>
+              <object class="ttk.Button" id="clear_button" named="True">
                 <property name="text" translatable="yes">Clear</property>
                 <layout manager="grid">
                   <property name="column">3</property>
@@ -163,7 +164,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="entry1">
+              <object class="ttk.Entry" id="username_entry" named="True">
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">3</property>
@@ -181,7 +182,8 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="entry3">
+              <object class="ttk.Entry" id="password_entry" named="True">
+                <property name="show">•</property>
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">5</property>
@@ -199,7 +201,8 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Combobox" id="combobox1">
+              <object class="ttk.Combobox" id="campus_entry" named="True">
+                <property name="state">readonly</property>
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">7</property>
@@ -217,7 +220,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="entry4">
+              <object class="ttk.Entry" id="email_entry" named="True">
                 <layout manager="grid">
                   <property name="column">1</property>
                   <property name="row">3</property>
@@ -235,7 +238,8 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="entry5">
+              <object class="ttk.Entry" id="confirm_password_entry" named="True">
+                <property name="show">•</property>
                 <layout manager="grid">
                   <property name="column">1</property>
                   <property name="row">5</property>
@@ -243,8 +247,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Checkbutton" id="allergiescheck" named="True">
-                <property name="font">{ariel} 12 {}</property>
+              <object class="ttk.Checkbutton" id="allergies_entry" named="True">
                 <property name="offvalue">False</property>
                 <property name="onvalue">True</property>
                 <property name="text" translatable="yes">Allergies</property>
@@ -265,7 +268,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="fnameEntry" named="True">
+              <object class="ttk.Entry" id="first_name_entry" named="True">
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">1</property>
@@ -283,7 +286,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="lnameentry" named="True">
+              <object class="ttk.Entry" id="last_name_entry" named="True">
                 <layout manager="grid">
                   <property name="column">1</property>
                   <property name="row">1</property>
