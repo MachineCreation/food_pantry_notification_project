@@ -19,11 +19,9 @@ class FoodPantryProject():
     main GUI logic for app
     '''
     __gui: GUI | None = None
-    __app_context: dict | None = None
 
     def __init__(self):
-        self.__app_context = {}
-        self.__gui = GUI(self.__app_context)
+        self.__gui = GUI()
 
     def run(self):
         '''

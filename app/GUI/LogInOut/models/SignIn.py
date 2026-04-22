@@ -33,6 +33,13 @@ class SignIn():
 
         self.__frame = self.__builder.get_object("SignIn", self.__gui.root)
 
+        self.config_buttons()
+
+    def config_buttons(self):
+        '''
+        Configure buttons and their commands
+        '''
+
         # get buttons
         self.__sign_in_button = self.__builder.get_object(
             "sign_in_button",
@@ -43,7 +50,7 @@ class SignIn():
 
         # bind to GUI navigation
         self.__sign_in_button.configure(
-            command=self.__gui.show_dashboard
+            command=self.__gui.log_in
             )
         self.__sign_up_button.configure(
             command=self.__gui.show_signup

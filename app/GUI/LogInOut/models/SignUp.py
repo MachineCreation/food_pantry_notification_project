@@ -65,7 +65,7 @@ class SignUp():
             command=self.__gui.show_signin
             )
         self.__sign_up_button.configure(
-            command=self.__gui.show_dashboard
+            command=self.__gui.log_in
             )
 
         # bind button functions

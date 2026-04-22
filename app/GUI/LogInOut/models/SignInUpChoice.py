@@ -36,6 +36,7 @@ class SignInUpChoice():
             self.__gui.root
             )
 
+        self.__frame.grid(row=0, column=0, sticky="nsew")
         self.config_buttons()
 
     def config_buttons(self):

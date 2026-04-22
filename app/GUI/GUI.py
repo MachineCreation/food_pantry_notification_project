@@ -8,9 +8,9 @@
 # Description: main GUI class for the Food Pantry Notification App
 
 # Local imports
-from app.gui.logInOut.SignInUpChoice import SignInUpChoice
-from app.gui.logInOut.SignIn import SignIn
-from app.gui.logInOut.SignUp import SignUp
+from app.gui.logInOut.models.SignInUpChoice import SignInUpChoice
+from app.gui.logInOut.models.SignIn import SignIn
+from app.gui.logInOut.models.SignUp import SignUp
 from app.gui.dashboard.models.DashBoard import DashBoard
 
 # python imports
@@ -23,30 +23,34 @@ class GUI:
     Responsible for creating and managing the tkinter GUI components.
     '''
     __root: tkinter.Tk | None = None
-    __app_context: dict = {}
+    __app_context: dict = {
+        'logged_user': None,
+        'user_role': None
+    }
 
-    def __init__(self, app_context):
+    def __init__(self):
         '''
-        :param app_context: carries the data that will be fed to the rest of
-            the app
-            such as logged user.
+        Initialize the GUI, set up the root window, and show the initial frame.
         '''
 
         # set basic params for Tk root
-        self.__root = tkinter.Tk()
+        self.__root: tkinter.Tk = tkinter.Tk()
         self.__root.title("Food Pantry Notification App")
         self.__root.resizable(True, True)
         self.__root.grid()
         self.__root.anchor('center')
         self.__root.geometry("1000x700")
+        self.__root.minsize(1000, 700)
+        self.__root.grid_rowconfigure(0, weight=1)
+        self.__root.grid_columnconfigure(0, weight=1)
 
-        # set app context
-        self.__app_context = app_context
         self.__current_frame = None
 
         # show start frame
-        # if not self.__app_context['logged_user']:
-        self.show_sign_in_up_choice()
+        if not self.__app_context['logged_user']:
+            self.show_sign_in_up_choice()
+        else:
+            self.show_dashboard()
 
     def clear_frame(self):
         if self.__current_frame:
@@ -92,6 +96,52 @@ class GUI:
         self.clear_frame()
         screen = DashBoard(self, self.__app_context)
         self.__current_frame = screen.get_frame()
+
+    def show_send_notification(self):
+        '''
+        shows the send notification frame
+        '''
+        self.clear_frame()
+        pass
+
+    def show_manage_users(self):
+        '''
+        shows the manage users frame
+        '''
+        self.clear_frame()
+        pass
+
+    def show_notification_log(self):
+        '''
+        shows the notification log frame
+        '''
+        self.clear_frame()
+        pass
+
+    def show_create_template(self):
+        '''
+        shows the create template frame
+        '''
+        self.clear_frame()
+        pass
+
+    def log_in(self):
+        '''
+        logs in the user and shows the dashboard frame
+        '''
+        self.clear_frame()
+        self.__app_context['logged_user'] = 'user'  # move to logic layer
+        self.__app_context['user_role'] = 'admin'  # move to logic layer
+        self.show_dashboard()
+
+    def log_out(self):
+        '''
+        logs out the user and shows the sign in/up choice frame
+        '''
+        self.clear_frame()
+        self.__app_context['logged_user'] = None  # move to logic layer
+        self.__app_context['user_role'] = None  # move to logic layer
+        self.show_sign_in_up_choice()
 
 # --------------------------------- run ---------------------------------
     def run_gui(self):
