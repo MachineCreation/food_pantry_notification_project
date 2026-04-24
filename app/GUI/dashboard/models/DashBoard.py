@@ -9,6 +9,7 @@
 # Description: Class is an empty dashboard page
 
 # Local imports
+from app.gui.utilities.routes import send_to_route
 
 # python imports
 from tkinter import ttk
@@ -60,7 +61,7 @@ class DashBoard():
             )
 
         self.__log_out_button.configure(
-            command=self.__gui.log_out,
+            command=lambda: send_to_route("sign_in_up_choice", self.__gui),
             style="log_out.TButton"
             )
 
@@ -86,10 +87,10 @@ class DashBoard():
 
         else:
             self.__send_notification_button.configure(
-                command=self.__gui.show_send_notification
+                command=lambda: send_to_route("send_notification", self.__gui)
                 )
             self.__notification_log_button.configure(
-                command=self.__gui.show_notification_log
+                command=lambda: send_to_route("notification_log", self.__gui)
             )
 
     def configure_admin_buttons(self, role):
@@ -113,10 +114,10 @@ class DashBoard():
 
         else:
             self.__create_template_button.configure(
-                command=self.__gui.show_create_template
+                command=lambda: send_to_route("create_template", self.__gui)
             )
             self.__manage_users_button.configure(
-                command=self.__gui.show_manage_users
+                command=lambda: send_to_route("manage_users", self.__gui)
             )
 
     def configure_text_area(self):

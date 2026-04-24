@@ -8,13 +8,13 @@
 # Description: Class for sign in/up choice
 
 # Local imports
+from app.gui.utilities.models.FrameBase import FrameBase
 
 # python imports
-# import tkinter
-import pygubu
+from tkinter import ttk
 
 
-class SignInUpChoice():
+class SignInUpChoice(FrameBase):
     '''
     class for log in, sign up, and log out logic
     '''
@@ -23,37 +23,39 @@ class SignInUpChoice():
     __gui = None
 
     def __init__(self, gui, app_context: dict):
-        from app.gui.GUI import GUI
+        super().__init__(
+            gui,
+            app_context,
+            "app/gui/logInOut/ui/signin_up_choice.ui",
+            "SignInUpChoice"
+        )
 
-        self.__gui: GUI = gui
-        self.__app_context = app_context
+        # configure frame attributes
+        self.register_buttons(self.__buttons)
 
-        self.__builder = pygubu.Builder()
-        self.__builder.add_from_file("app/gui/logInOut/ui/signin_up_choice.ui")
-
-        self.__frame = self.__builder.get_object(
-            "SignInUpChoice",
-            self.__gui.root
-            )
-
-        self.__frame.grid(row=0, column=0, sticky="nsew")
-        self.config_buttons()
-
-    def config_buttons(self):
+# --------------------------------- properties ------------------------------
+    @property
+    def __buttons(self) -> \
+            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]]:
         '''
-        Configure buttons and their commands
+        dict to carry
+            <button name>: {
+                'commands': [callable, ...],
+                'styles': [ttk.Style, ...]
+        }
         '''
-        # get buttons
-        self.__sign_in_button = self.__builder.get_object(
-            "sign_in_button",
-            self.__frame)
-        self.__sign_up_button = self.__builder.get_object(
-            "sign_up_button",
-            self.__frame)
 
-        # bind to GUI navigation
-        self.__sign_in_button.configure(command=self.__gui.show_signin)
-        self.__sign_up_button.configure(command=self.__gui.show_signup)
+        buttons: \
+            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]] \
+            = {
+                'sign_in_button': {
+                    'commands': {self.send_to_route: ['sign_in']},
+                    'styles': []
+                },
+                'sign_up_button': {
+                    'commands': {self.send_to_route: ['sign_up']},
+                    'styles': []
+                },
+            }
 
-    def get_frame(self):
-        return self.__frame
+        return buttons

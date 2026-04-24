@@ -10,6 +10,7 @@
 
 # Local imports
 from app.gui.utilities.EntryBehavior import EntryBehavior
+from app.gui.utilities.routes import send_to_route
 
 # python imports
 from tkinter import ttk
@@ -23,7 +24,11 @@ class SignUp():
     '''
     __app_context: dict | None = None
     __gui: tkinter.Tk | None = None
-    __campuses = ["Cascade", "Rock Creek", "Southeast", "Sylvania"]
+    __campuses = [
+        "Cascade",
+        "Rock Creek",
+        "Southeast",
+        "Sylvania"]
 
     def __init__(self, gui, app_context: dict):
         from app.gui.GUI import GUI
@@ -62,7 +67,7 @@ class SignUp():
 
         # bind to GUI navigation
         self.__sign_in_button.configure(
-            command=self.__gui.show_signin
+            command=lambda: send_to_route("sign_in", self.__gui)
             )
         self.__sign_up_button.configure(
             command=self.__gui.log_in

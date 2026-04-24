@@ -8,10 +8,7 @@
 # Description: main GUI class for the Food Pantry Notification App
 
 # Local imports
-from app.gui.logInOut.models.SignInUpChoice import SignInUpChoice
-from app.gui.logInOut.models.SignIn import SignIn
-from app.gui.logInOut.models.SignUp import SignUp
-from app.gui.dashboard.models.DashBoard import DashBoard
+from app.gui.utilities.routes import send_to_route
 
 # python imports
 import tkinter
@@ -48,7 +45,7 @@ class GUI:
 
         # show start frame
         if not self.__app_context['logged_user']:
-            self.show_sign_in_up_choice()
+            send_to_route("sign_in_up_choice", self)
         else:
             self.show_dashboard()
 
@@ -65,83 +62,35 @@ class GUI:
         return self.__root
 
 # --------------------------------- Routes ---------------------------------
-    def show_sign_in_up_choice(self):
+    def show_route(self, route_class):
         '''
-        shows the sign in/up choice frame
+        shows the given route class frame
         '''
         self.clear_frame()
-        screen = SignInUpChoice(self, self.__app_context)
+        screen = route_class(self, self.__app_context)
         self.__current_frame = screen.get_frame()
-
-    def show_signin(self):
-        '''
-        shows the sign in frame
-        '''
-        self.clear_frame()
-        screen = SignIn(self, self.__app_context)
-        self.__current_frame = screen.get_frame()
-
-    def show_signup(self):
-        '''
-        shows the sign up frame
-        '''
-        self.clear_frame()
-        screen = SignUp(self, self.__app_context)
-        self.__current_frame = screen.get_frame()
-
-    def show_dashboard(self):
-        '''
-        shows the dashboard frame
-        '''
-        self.clear_frame()
-        screen = DashBoard(self, self.__app_context)
-        self.__current_frame = screen.get_frame()
-
-    def show_send_notification(self):
-        '''
-        shows the send notification frame
-        '''
-        self.clear_frame()
-        pass
-
-    def show_manage_users(self):
-        '''
-        shows the manage users frame
-        '''
-        self.clear_frame()
-        pass
-
-    def show_notification_log(self):
-        '''
-        shows the notification log frame
-        '''
-        self.clear_frame()
-        pass
-
-    def show_create_template(self):
-        '''
-        shows the create template frame
-        '''
-        self.clear_frame()
-        pass
 
     def log_in(self):
         '''
         logs in the user and shows the dashboard frame
         '''
+        from app.gui.utilities.routes import send_to_route
+
         self.clear_frame()
         self.__app_context['logged_user'] = 'user'  # move to logic layer
         self.__app_context['user_role'] = 'admin'  # move to logic layer
-        self.show_dashboard()
+        send_to_route("dashboard", self)
 
     def log_out(self):
         '''
         logs out the user and shows the sign in/up choice frame
         '''
+        from app.gui.utilities.routes import send_to_route
+
         self.clear_frame()
         self.__app_context['logged_user'] = None  # move to logic layer
         self.__app_context['user_role'] = None  # move to logic layer
-        self.show_sign_in_up_choice()
+        send_to_route("sign_in_up_choice", self)
 
 # --------------------------------- run ---------------------------------
     def run_gui(self):
