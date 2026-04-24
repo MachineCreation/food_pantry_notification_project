@@ -18,7 +18,10 @@ class User():
     '''
 
     @staticmethod
-    def authenticate(self, app_context: dict) -> bool:
+    def authenticate(
+        gui,
+        app_context: dict
+        ) -> bool:
         '''
         helper method to authenticate the user
         :return: True if authenticated, False otherwise

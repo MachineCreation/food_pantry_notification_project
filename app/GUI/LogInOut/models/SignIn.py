@@ -11,6 +11,7 @@
 # Local imports
 from tkinter import ttk
 from app.gui.utilities.models.FrameBase import FrameBase
+from app.logic.models.User import User
 
 # python imports
 
@@ -36,7 +37,7 @@ class SignIn(FrameBase):
         helper method to sign in the user
         :return: None
         '''
-        authenticated: bool = User.authenticate(self, self.__app_context)
+        authenticated: bool = User.authenticate(self.__gui, app_context=self.__app_context)
         print(param)
         self.send_to_route("dashboard")
 
