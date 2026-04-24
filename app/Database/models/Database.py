@@ -13,12 +13,15 @@ import env
 
 # python imports
 import sqlite3
+import bcrypt
+
 
 class Database():
     '''
     class for creating sqlite3 database connection and cursor.
     creating, altering, and querying sqlite3 databases.
-    Provides methods to connect to a sqlite3 database, execute queries, and manage transactions.
+    Provides methods to connect to a sqlite3 database, execute queries,
+    and manage transactions.
     '''
 
     # database url from env.py should be from .env but this is for simplicity
@@ -27,13 +30,13 @@ class Database():
     __connection: sqlite3.Connection | None = None
     __cursor: sqlite3.Cursor | None = None
 
-
     def __init__(self):
         pass
 
     def connect(self):
         '''
-        Establishes a connection to the sqlite3 database and creates a cursor for executing SQL statements.
+        Establishes a connection to the sqlite3 database and creates a cursor
+            for executing SQL statements.
         :param self: instance of the Database class
         '''
         try:
@@ -44,7 +47,8 @@ class Database():
 
     def disconnect(self):
         '''
-        Closes the connection to the sqlite3 database and the associated cursor.
+        Closes the connection to the sqlite3 database and the
+            associated cursor.
         :param self: instance of the Database class
         '''
         try:
@@ -66,20 +70,27 @@ class Database():
             if self.__connection:
                 self.__cursor = self.__connection.cursor()
             else:
-                raise ConnectionError("Database connection is not established.")
+                raise ConnectionError(
+                    "Database connection is not established."
+                    )
         except sqlite3.Error as e:
             raise sqlite3.Error(f"Failed to create cursor: {e}")
-        
-    def execute_query(self, query: str, parameters: tuple = (), fetch_all: bool = True):
+
+# ---------------------------- query functions ---------------------------
+    def execute_query(
+            self,
+            query: str,
+            parameters: tuple = (),
+            fetch_all: bool = True):
         '''
         Executes a SQL query using the database cursor.
         :param self: instance of the Database class
         :param query: SQL query string to execute
         :param parameters: optional tuple of parameters to pass to the query
-        :param fetch_all: if True, fetch all results from the query and return them, 
-        otherwise return one.
-        :return: result of the query, either all rows (list of tuples) if fetch_all is True, 
-        or a single row (tuple) if fetch_all is False
+        :param fetch_all: if True, fetch all results from the query
+            and return them, otherwise return one.
+        :return: result of the query, either all rows (list of tuples)
+            if fetch_all is True, or a single row (tuple) if fetch_all is False
         '''
         if not self.__cursor:
             raise ConnectionError("Database cursor is not established.")
@@ -112,13 +123,44 @@ class Database():
             print(f"Table {table_name} dropped successfully.")
         except sqlite3.Error as e:
             raise sqlite3.Error(f"Failed to drop table {table_name}: {e}")
-        
+
     # --------------------
+    def authenticate_user(
+            self,
+            username: str,
+            password: str
+            ) -> tuple[bool, str | None]:
+        '''
+        authenticates a user by checking the username and password
+            against the database
+        :param self: instance of the Database class
+        :param username: username to authenticate
+        :param password: password to authenticate
+        :return: tuple of (authenticated: bool, user_role: str | None)
+        '''
+        if not self.__cursor:
+            raise ConnectionError("Database cursor is not established.")
+        query = "SELECT password, role FROM users WHERE username = ?;"
+        try:
+            result = self.execute_query(query, (username,), fetch_all=False)
+            if result:
+                stored_password, user_role = result
+                authenticated = bcrypt.checkpw(
+                    password.encode('utf-8'),
+                    stored_password.encode('utf-8'))
+                return authenticated, user_role
+            else:
+                return False, None
+        except sqlite3.Error as e:
+            raise sqlite3.Error(f"Failed to authenticate user {username}: {e}")
+
+# --------------------------------- static ---------------------------------
     @staticmethod
     def rebuild_database():
         '''
-        runs database rebuild script located in app/Database/setup/create_database.py
+        runs database rebuild script located in
+        app/database/setup/create_database.py
         '''
-        from app.Database.setup.create_database import main
+        from app.database.setup.create_database import main
         print("Rebuilding database...")
         main()

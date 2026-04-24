@@ -15,8 +15,8 @@ import dotenv, os
 
 dotenv.load_dotenv()
 
-DATABASE_URL= os.getenv("DATABASE_URL") or 'app/Database/database.db'
+DATABASE_URL = os.getenv("DATABASE_URL") or 'app/Database/database.db'
 
-ADMIN_USERNAME= os.getenv("ADMIN_USERNAME") or 'admin'
-ADMIN_EMAIL= os.getenv("ADMIN_EMAIL") or 'admin@example.com'
-ADMIN_PASSWORD= os.getenv("ADMIN_PASSWORD") or 'admin123'
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME") or 'admin'
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL") or 'admin@example.com'
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD") or 'admin123'
