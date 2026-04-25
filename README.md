@@ -1,6 +1,6 @@
 # Food Pantry Notification Project
 
-Desktop app prototype for food pantry communication workflows.
+Desktop prototype for a food pantry notification system built with Python and Tkinter.
 
 ## Contributors
 
@@ -13,36 +13,57 @@ Desktop app prototype for food pantry communication workflows.
 
 ## Overview
 
-This repository is an early-stage Python desktop application using:
+This repository contains a desktop GUI application that is intended to support food pantry communication and account workflows. The current codebase focuses on:
 
-- Tkinter for GUI orchestration
-- SQLite for local data storage
-- `bcrypt` for password hashing
-- `python-dotenv` for environment-based configuration
+- launching a Tkinter application shell
+- routing between login, sign-up, and dashboard screens
+- validating user input for authentication flows
+- connecting application logic to a local SQLite-backed database layer
 
-## Current Status
+The project is still in progress. Some screens and routes exist only as placeholders, and parts of the authentication flow still fall back to temporary development behavior when the database layer is incomplete.
 
-Project maturity: prototype / not in active development.
+## Tech Stack
 
-Implemented:
+- Python 3.14
+- Tkinter for the desktop UI
+- SQLite for local persistence
+- `python-dotenv` for environment configuration
+- `bcrypt` for password hashing support
 
-- Main app entry point and GUI bootstrapping
-- `Database` helper class for SQLite connections and queries
-- `User` model with authentication helper that checks credentials against database
+## Current State
 
-In progress:
+Implemented in the current code:
 
-- Rebuild database function that creates and populates tables in the database
-- Complete multi-screen routing and frame implementations
-- End-to-end sign-in/sign-up workflows
-- Notification features (send/log/template/user-management)
-- Automated tests
+- `main.py` starts the desktop app and initializes the GUI
+- `app/gui/GUI.py` creates the root window and app context
+- `app/gui/utilities/routes.py` routes between the currently wired screens
+- sign-in, sign-up, and sign-in/sign-up choice screens are present
+- `app/gui/dashboard/models/DashBoard.py` provides the current dashboard frame
+- `app/logic/models/User.py` contains authentication and sign-up helpers
+
+Partially implemented or still incomplete:
+
+- database bootstrap in `app/database/setup/create_database.py`
+- fully wired persistence for account creation and login
+- dashboard destinations for notification, template, and user-management flows
+- automated tests and CI checks
+
+## Available Screens
+
+The current route table includes these screen names:
+
+- `sign_in`
+- `sign_up`
+- `sign_in_up_choice`
+- `dashboard`
+
+The dashboard UI also references future routes for notification and user-management features, but those routes are not yet registered in the route table.
 
 ## Requirements
 
 - Python 3.14
-- Tkinter support in your Python installation
-- Windows PowerShell (commands below are written for PowerShell)
+- Tkinter support in the Python installation
+- Windows PowerShell if you want to use the commands below as written
 
 ## Quick Start
 
@@ -53,20 +74,27 @@ pip install -r requirements.txt
 python main.py
 ```
 
-## Environment Configuration
+## Configuration
 
-Create a `.env` file in the project root to override defaults:
+Environment values are loaded from `.env` through `env.py`. If a variable is not present, the project uses the fallback defaults defined there.
+
+Example `.env`:
 
 ```env
-DATABASE_URL=app/database/database.db
+DATABASE_URL=app/Database/database.db
 ADMIN_USERNAME=admin
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=admin123
 ```
 
-If `.env` is not present, fallback defaults from `env.py` are used.
+Current defaults in `env.py`:
 
-## Repository Layout
+- `DATABASE_URL=app/Database/database.db`
+- `ADMIN_USERNAME=admin`
+- `ADMIN_EMAIL=admin@example.com`
+- `ADMIN_PASSWORD=admin123`
+
+## Project Layout
 
 ```text
 food_pantry/
@@ -81,50 +109,50 @@ food_pantry/
 |   |       `-- create_database.py
 |   |-- gui/
 |   |   |-- GUI.py
+|   |   |-- dashboard/
+|   |   |   |-- models/
+|   |   |   |   `-- DashBoard.py
+|   |   |   `-- ui/
+|   |   |       `-- dashboard.ui
+|   |   |-- logInOut/
+|   |   |   |-- models/
+|   |   |   |   |-- SignIn.py
+|   |   |   |   |-- SignInUpChoice.py
+|   |   |   |   `-- SignUp.py
+|   |   |   `-- ui/
+|   |   |       |-- sign_in.ui
+|   |   |       |-- sign_up.ui
+|   |   |       |-- signin_up_choice.ui
+|   |   |       `-- send_notification.ui
 |   |   `-- utilities/
+|   |       |-- EntryBehavior.py
+|   |       |-- ToolTip.py
 |   |       |-- routes.py
 |   |       `-- models/
 |   |           `-- FrameBase.py
 |   `-- logic/
-|       `-- models/
-|           `-- User.py
+|       |-- models/
+|       |   `-- User.py
+|       `-- utilities/
+|           `-- validation.py
 |-- LICENSE
 `-- README.md
 ```
 
-## Entry Points
-
-- App runtime: `main.py`
-- Database bootstrap logic: `app/database/setup/create_database.py`
-
-## Database Bootstrap Behavior
-
-The rebuild flow:
-
-- Creates `database.db` if it does not exist
-- Drops and recreates `roles`
-- Seeds `roles` with `admin`, `subscriber`, `member`
-- Drops and recreates `users`
-- Creates an admin user from environment values
-- Seeds a few dummy users for development
-
 ## Notes For Developers
 
-- GUI controller lives in `app/gui/GUI.py`.
-- Route dispatch helper lives in `app/gui/utilities/routes.py`.
-- DB access utility is `app/database/models/Database.py`.
-- Authentication helper model is `app/logic/models/User.py`.
-- Dependencies are listed in `requirements.txt`.
+- `main.py` is the application entry point.
+- `app/gui/GUI.py` owns the root window and application context.
+- `app/gui/utilities/routes.py` is the route dispatcher.
+- `app/logic/models/User.py` currently mixes real database calls with temporary fallback authentication values for development.
+- `app/database/setup/create_database.py` exists as the intended database setup entry point, but it is not implemented yet.
 
-## Suggested Next Steps
+## Development Priorities
 
-1. Complete database creation bootstrap.
-2. Finalize route table and frame classes for each view.
-3. Implement persistent sign-up flow.
-4. Wire sign-in UI to real credential checks via `User.authenticate`.
-5. Add tests for database rebuild and auth paths.
-6. Add CI checks (lint + tests).
-
+1. Implement the database bootstrap script.
+2. Finish database-backed sign-in and sign-up behavior end to end.
+3. Register and build the remaining dashboard destination routes.
+4. Add tests around validation, authentication, and database integration.
 
 ## License
 

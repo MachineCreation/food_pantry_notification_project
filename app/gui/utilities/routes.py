@@ -18,7 +18,10 @@ def send_to_route(route: str, gui: callable) -> None:
     send to route
     '''
     from app.gui.GUI import GUI
-    # import frames her to avoid circular imports
+    from app.gui.logInOut.models.SignIn import SignIn
+    from app.gui.logInOut.models.SignUp import SignUp
+    from app.gui.logInOut.models.SignInUpChoice import SignInUpChoice
+    from app.gui.dashboard.models.DashBoard import DashBoard
 
     if not isinstance(gui, GUI):
         raise TypeError("Expected a GUI instance")
@@ -26,10 +29,10 @@ def send_to_route(route: str, gui: callable) -> None:
     # structure for routes, and the frame class after importing
     routes = {
 
-        # "sign_in": SignIn,
-        # "sign_up": SignUp,
-        # "sign_in_up_choice": SignInUpChoice,
-        # "dashboard": DashBoard,
+        "sign_in": SignIn,
+        "sign_up": SignUp,
+        "sign_in_up_choice": SignInUpChoice,
+        "dashboard": DashBoard,
         # "send_notification": ,
         # "notification_log": ,
         # "create_template": ,

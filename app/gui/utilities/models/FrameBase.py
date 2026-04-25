@@ -28,7 +28,7 @@ class FrameBase():
             self,
             gui,
             app_context: dict,
-            file_path: str,
+            file_path: str | None = None,
             frame_name: str | None = None,
             frame: tkinter.Frame | None = None
             ) -> None:

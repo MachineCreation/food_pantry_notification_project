@@ -3,8 +3,8 @@
 # filename: app/logic/models/user.py
 # Author: Joseph Egan
 # 2026-04-23
-# Sources: 
-# Contributors: 
+# Sources:
+# Contributors:
 # -------------------------------------------------------------------------------
 # Description: class for user data and authentication
 
@@ -28,6 +28,16 @@ class User():
         self.__username = username
         self.__role = role
 
+    # --------------------
+    def log_out(self, app_context: dict) -> None:
+        '''
+        helper method to log out the user
+        :return: None
+        '''
+
+        app_context['user'] = None
+        del self
+
 # --------------------------------- properties -------------------------------
     @property
     def username(self) -> str:
@@ -49,7 +59,8 @@ class User():
     @staticmethod
     def authenticate(
             password: str,
-            username: str,
+            id: str,
+            id_type: str,
             app_context: dict
             ) -> bool:
         '''
@@ -63,12 +74,77 @@ class User():
 
         if database:
             authenticated, user_role = database.authenticate_user(
-                username,
-                password
+                id,
+                password,
+                id_type
                 )
 
             if authenticated:
-                app_context['user'] = User(username, user_role)
-            return authenticated
+                app_context['user'] = User(id, user_role)
+                return authenticated
 
+        # --------------------
+        # Temporary return value until database is implemented
+        # --------------------
+        if id == "admin" and password == "admin":
+            app_context['user'] = User(id, "admin")
+            print("Authenticated as admin")
+            return True
+        elif id == "member" and password == "member":
+            app_context['user'] = User(id, "member")
+            print("Authenticated as member")
+            return True
+        elif id == "subscriber" and password == "subscriber":
+            app_context['user'] = User(id, "subscriber")
+            print("Authenticated as subscriber")
+            return True
+        # --------------------
+        # End of temporary return value
+        # --------------------
+        return False
+
+    # --------------------
+    @staticmethod
+    def sign_up(
+            first_name: str,
+            last_name: str,
+            username: str,
+            email: str,
+            password: str,
+            campus: str,
+            allergies: bool,
+            app_context: dict
+            ) -> bool:
+        '''
+        helper method to sign up the user
+        :return: True if signed up, False otherwise
+        '''
+        from app.database.models.Database import Database
+        # get the database from the app context
+
+        database: Database = app_context['database']
+
+        if database:
+            signed_up = database.sign_up_user(
+                username,
+                password,
+                email,
+                first_name,
+                last_name,
+                campus,
+                allergies
+                )
+            if signed_up:
+                return signed_up
+
+        # --------------------
+        # Temporary return value until database is implemented
+        # --------------------
+        if (username and password and email and
+                first_name and last_name and campus):
+            print(f"Signed up user {username}: {email}")
+            return True
+        # --------------------
+        # End of temporary return value
+        # --------------------
         return False

@@ -3,8 +3,8 @@
 # filename: Database.py
 # Author: Joseph Egan
 # 2026-04-17
-# Sources: 
-# Contributors: 
+# Sources:
+# Contributors:
 # -------------------------------------------------------------------------------
 # Description: database class for basic database functions
 
@@ -142,37 +142,125 @@ class Database():
     # --------------------
     def authenticate_user(
             self,
-            username: str,
-            password: str
+            id: str,
+            password: str,
+            id_type: str
             ) -> tuple[bool, str | None]:
         '''
-        authenticates a user by checking the username and password
+        authenticates a user by checking the id and password
             against the database
         :param self: instance of the Database class
-        :param username: username to authenticate
+        :param id: id to authenticate
         :param password: password to authenticate
-        :return: tuple of (authenticated: bool, user_role: str | None)
+        :param id_type: type of id, either 'username' or 'email'
+        :return: tuple of (authenticated: bool, user_role, username:
+            str | None | str)
         '''
         if not self.__cursor:
             self.connect()
             self.make_cursor()
 
-        query = "SELECT password, role FROM users WHERE username = ?;"
+        query = \
+            ("SELECT password, role, username FROM users WHERE username = ?;"
+                if id_type == 'username' else
+                "SELECT password, role, username FROM users WHERE email = ?;")
         try:
-            result = self.execute_query(query, (username,), fetch_all=False)
+            result = self.execute_query(query, (id,), fetch_all=False)
             if result:
-                stored_password, user_role = result
+                stored_password, user_role, username = result
                 authenticated = bcrypt.checkpw(
                     password.encode('utf-8'),
                     stored_password.encode('utf-8'))
                 self.disconnect()
-                return authenticated, user_role
+                return authenticated, user_role, username
             else:
                 self.disconnect()
                 return False, None
-        except sqlite3.Error as e:
+        except sqlite3.Error:
             self.disconnect()
-            raise sqlite3.Error(f"Failed to authenticate user {username}: {e}")
+            return False, None
+
+    # --------------------
+    def sign_up_user(
+            self,
+            username: str,
+            password: str,
+            email: str,
+            first_name: str,
+            last_name: str,
+            allergies: str,
+            role: str = "subcriber"
+            ) -> bool:
+        '''
+        signs up a user by inserting their information into the database
+        :param self: instance of the Database class
+        :param username: username of the user to sign up
+        :param password: password of the user to sign up
+        :param email: email of the user to sign up
+        :param first_name: first name of the user to sign up
+        :param last_name: last name of the user to sign up
+        :param role: role of the user to sign up, default is "member"
+        :return: True if the user was signed up successfully, False otherwise
+        '''
+        if not self.__cursor:
+            self.connect()
+            self.make_cursor()
+
+        if not all(
+            [username, password, email, first_name, last_name, allergies]
+                ):
+            self.disconnect()
+            return False
+
+        hashed_password = bcrypt.hashpw(
+            password.encode('utf-8'),
+            bcrypt.gensalt(12)
+            ).decode('utf-8')
+
+        search_username_email_query = '''
+            SELECT username, email
+            FROM users
+            WHERE username = ? OR email = ?;
+            '''
+        try:
+            exists = self.execute_query(
+                search_username_email_query,
+                (username, email),
+                fetch_all=False)
+            if exists:
+                self.disconnect()
+                return False
+        except sqlite3.Error:
+            self.disconnect()
+            return False
+
+        insert_query = '''
+            INSERT INTO users (
+            username,
+            password,
+            email,
+            first_name,
+            last_name,
+            role
+            )
+
+            VALUES (?, ?, ?, ?, ?, ?);
+            '''
+        try:
+            self.execute_query(
+                insert_query,
+                (username,
+                 hashed_password,
+                 email,
+                 first_name,
+                 last_name,
+                 role),
+                fetch_all=False)
+            self.disconnect()
+            return True
+        except sqlite3.Error:
+            self.disconnect()
+            return False
 
 # --------------------------------- static ---------------------------------
     @staticmethod
