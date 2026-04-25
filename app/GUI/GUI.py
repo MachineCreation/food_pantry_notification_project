@@ -8,7 +8,7 @@
 # Description: main GUI class for the Food Pantry Notification App
 
 # Local imports
-from app.gui.utilities.routes import send_to_route
+from app.GUI.utilities.routes import send_to_route
 
 # python imports
 import tkinter
@@ -68,13 +68,16 @@ class GUI:
         '''
         self.clear_frame()
         screen = route_class(self, self.__app_context)
-        self.__current_frame = screen.get_frame()
+        frame = screen.get_frame()
+        frame.grid(row=0, column=0, sticky='nsew')
+        #self.__current_frame = screen.get_frame()
+        self.__current_frame = frame
 
     def log_in(self):
         '''
         logs in the user and shows the dashboard frame
         '''
-        from app.gui.utilities.routes import send_to_route
+        from app.GUI.utilities.routes import send_to_route
 
         self.clear_frame()
         self.__app_context['logged_user'] = 'user'  # move to logic layer
@@ -85,7 +88,7 @@ class GUI:
         '''
         logs out the user and shows the sign in/up choice frame
         '''
-        from app.gui.utilities.routes import send_to_route
+        from app.GUI.utilities.routes import send_to_route
 
         self.clear_frame()
         self.__app_context['logged_user'] = None  # move to logic layer

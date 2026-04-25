@@ -8,7 +8,7 @@
 # Description: Class for sign in/up choice
 
 # Local imports
-from app.gui.utilities.models.FrameBase import FrameBase
+from app.GUI.utilities.models.FrameBase import FrameBase
 
 # python imports
 from tkinter import ttk

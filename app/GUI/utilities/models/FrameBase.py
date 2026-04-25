@@ -31,7 +31,7 @@ class FrameBase():
             file_path: str,
             frame_name: str
             ) -> None:
-        from app.gui.GUI import GUI
+        from app.GUI.GUI import GUI
 
         self.__gui: GUI = gui
         self.__app_context: dict = app_context
@@ -113,6 +113,6 @@ class FrameBase():
         :param route_name: name of the route to send to
         :return: None
         '''
-        from app.gui.utilities.routes import send_to_route
+        from app.GUI.utilities.routes import send_to_route
 
         send_to_route(route_name, self.__gui)

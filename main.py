@@ -9,7 +9,7 @@
 # Description: Main root app file for initiating instance
 
 # Local imports
-from app.gui.GUI import GUI
+from app.GUI.GUI import GUI
 
 # python imports
 

@@ -9,8 +9,8 @@
 # Description: Class for user sign up
 
 # Local imports
-from app.gui.utilities.EntryBehavior import EntryBehavior
-from app.gui.utilities.routes import send_to_route
+from app.GUI.utilities.EntryBehavior import EntryBehavior
+from app.GUI.utilities.routes import send_to_route
 
 # python imports
 from tkinter import ttk
@@ -31,7 +31,7 @@ class SignUp():
         "Sylvania"]
 
     def __init__(self, gui, app_context: dict):
-        from app.gui.GUI import GUI
+        from app.GUI.GUI import GUI
 
         self.__gui: GUI = gui
         self.__app_context = app_context

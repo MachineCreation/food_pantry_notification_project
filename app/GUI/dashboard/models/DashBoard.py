@@ -9,7 +9,7 @@
 # Description: Class is an empty dashboard page
 
 # Local imports
-from app.gui.utilities.routes import send_to_route
+from app.GUI.utilities.routes import send_to_route
 
 # python imports
 from tkinter import ttk
@@ -25,7 +25,7 @@ class DashBoard():
     __gui: object | None = None
 
     def __init__(self, gui, app_context: dict):
-        from app.gui.GUI import GUI
+        from app.GUI.GUI import GUI
 
         self.__gui: GUI = gui
         self.__app_context: dict = app_context

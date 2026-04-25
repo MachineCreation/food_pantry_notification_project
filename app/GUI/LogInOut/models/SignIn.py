@@ -10,7 +10,7 @@
 
 # Local imports
 from tkinter import ttk
-from app.gui.utilities.models.FrameBase import FrameBase
+from app.GUI.utilities.models.FrameBase import FrameBase
 from app.logic.models.User import User
 
 # python imports

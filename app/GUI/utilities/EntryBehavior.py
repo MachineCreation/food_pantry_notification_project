@@ -10,7 +10,7 @@
 # the GUI forms
 
 # Local imports
-from app.gui.utilities.ToolTip import ToolTip
+from app.GUI.utilities.ToolTip import ToolTip
 
 # python imports
 import tkinter
