@@ -15,16 +15,13 @@ from functools import partial
 from tkinter import ttk
 import tkinter
 import pygubu
+from typing import Callable, Any
 
 
 class FrameBase():
     '''
     base class for frames,
     '''
-
-    _app_context: dict | None = None
-    _gui: tkinter.Tk | None = None
-    _builder: pygubu.Builder | None = None
 
     def __init__(
             self,
@@ -68,7 +65,7 @@ class FrameBase():
     def register_buttons(
             self,
             buttons:
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]]
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]]
             ) -> None:
         '''
         helper method to register a button with a command and styles
@@ -89,7 +86,7 @@ class FrameBase():
             button_config: dict[str, object] = {}
 
             commands = button_info.get('commands', {})
-            if commands:
+            if commands and isinstance(commands, dict):
                 for func, param in commands.items():
                     button_config['command'] = partial(func, *param)
 
@@ -97,9 +94,6 @@ class FrameBase():
             if styles:
                 for style in styles:
                     button_config['style'] = style
-
-            if button_config:
-                button.configure(**button_config)
 
     # --------------------
     def send_to_route(self, route_name: str):
@@ -110,4 +104,4 @@ class FrameBase():
         '''
         from app.gui.utilities.routes import send_to_route
 
-        send_to_route(route_name, self._gui)
+        send_to_route(route_name, self._gui)  #type: ignore

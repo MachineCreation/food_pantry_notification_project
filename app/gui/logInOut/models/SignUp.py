@@ -20,6 +20,7 @@ from app.logic.utilities.validation import is_valid_password, \
 from tkinter import ttk
 from tkinter.messagebox import showwarning, showinfo
 import tkinter
+from typing import Callable, Any
 
 
 class SignUp(FrameBase):
@@ -170,8 +171,6 @@ class SignUp(FrameBase):
         '''
         Configure password entry fields to hide input and add tool tips
         '''
-        # configure password entries
-        # TODO: add password validation and confirmation
         self.__password_entry: ttk.Entry = \
             self._builder.get_object(
                 "password_entry",
@@ -185,7 +184,7 @@ class SignUp(FrameBase):
             "<FocusOut>",
             lambda e: (self.show_passwords_valid(
                 is_valid_password(self.__password_entry.get())
-                ), pw_focus_tool_tip.hide(e))
+                ), pw_focus_tool_tip.hide(e)) #type: ignore
             )
 
         self.__confirm_password_entry: ttk.Entry = \
@@ -203,7 +202,7 @@ class SignUp(FrameBase):
                 validate_passwords_match(
                     self.__password_entry.get(),
                     self.__confirm_password_entry.get())
-                ), focus_tool_tip.hide(e))
+                ), focus_tool_tip.hide(e)) #type: ignore
             )
 
     def config_campus_dropdown(self):
@@ -275,7 +274,7 @@ class SignUp(FrameBase):
 # --------------------------------- properties -------------------------------
     @property
     def __buttons(self) -> \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]]:
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]]:
         '''
         helper method to get the buttons for the frame
         :return: dict of button names, commands, and styles
@@ -285,7 +284,7 @@ class SignUp(FrameBase):
             background="#f9cf64"
         )
         buttons: \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]] \
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]] \
             = {
                 "sign_in_button": {
                     "commands": {

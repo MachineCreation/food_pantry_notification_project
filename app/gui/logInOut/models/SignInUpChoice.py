@@ -12,6 +12,7 @@ from app.gui.utilities.models.FrameBase import FrameBase
 
 # python imports
 from tkinter import ttk
+from typing import Callable, Any
 
 
 class SignInUpChoice(FrameBase):
@@ -36,7 +37,7 @@ class SignInUpChoice(FrameBase):
 # --------------------------------- properties ------------------------------
     @property
     def __buttons(self) -> \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]]:
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]]:
         '''
         dict to carry
             <button name>: {
@@ -46,7 +47,7 @@ class SignInUpChoice(FrameBase):
         '''
 
         buttons: \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]] \
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]] \
             = {
                 'sign_in_button': {
                     'commands': {self.send_to_route: ['sign_in']},

@@ -11,9 +11,10 @@
 # Local imports
 
 # python imports
+from typing import Callable
 
 
-def send_to_route(route: str, gui: callable) -> None:
+def send_to_route(route: str, gui: Callable) -> None:
     '''
     send to route
     '''

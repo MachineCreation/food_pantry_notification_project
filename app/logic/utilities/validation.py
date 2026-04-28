@@ -68,7 +68,7 @@ def is_email_or_username(value: str) -> Tuple[bool, str]:
 
 
 # --------------------
-def is_valid_password(value: str) -> Tuple[bool, None]:
+def is_valid_password(value: str) -> bool:
     '''
     validation function for password input
     :param value: the string to validate
@@ -79,7 +79,7 @@ def is_valid_password(value: str) -> Tuple[bool, None]:
 
 # --------------------
 def validate_passwords_match(password: str, confirm_password: str) -> \
-        Tuple[bool, None]:
+        bool:
     '''
     validation function for matching password and confirm password fields
     :param password: the password to validate

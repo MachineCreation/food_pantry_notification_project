@@ -18,6 +18,7 @@ from app.logic.utilities.validation import input_string, non_empty_string, \
 import tkinter
 from tkinter import ttk
 from tkinter.messagebox import showwarning
+from typing import Callable, Any
 
 
 class SignIn(FrameBase):
@@ -56,7 +57,7 @@ class SignIn(FrameBase):
         authenticated: bool = User.authenticate(
             password=password,
             id=username_or_email,
-            id_type=uname_email,
+            id_type=str(uname_email),
             app_context=self._app_context)
 
         if authenticated:
@@ -75,9 +76,8 @@ class SignIn(FrameBase):
         :return: (is_valid, id_type)
         '''
         try:
-            valid_uname_or_email, uname_email = input_string(
-                self.__username_entry,
-                is_email_or_username
+            valid_uname_or_email, uname_email = is_email_or_username(
+                self.__username_entry.get()
             )
 
         except ValueError:
@@ -168,7 +168,7 @@ class SignIn(FrameBase):
 # --------------------------------- properties ------------------------------
     @property
     def __buttons(self) -> \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]]:
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]]:
         '''
         helper method to get the buttons for the frame
         :return: dict of button names, commands, and styles
@@ -178,7 +178,7 @@ class SignIn(FrameBase):
             background="#f9cf64"
         )
         buttons: \
-            dict[str, dict[str, dict[callable, list[any]] | list[ttk.Style]]] \
+            dict[str, dict[str, dict[Callable, list[Any]] | list[str]]] \
             = {
                 "sign_in_button": {
                     "commands": {
