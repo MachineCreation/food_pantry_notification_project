@@ -11,7 +11,6 @@
 from app.gui.utilities.models.FrameBase import FrameBase
 
 # python imports
-from tkinter import ttk
 from typing import Callable, Any
 
 
@@ -19,9 +18,6 @@ class SignInUpChoice(FrameBase):
     '''
     class for log in, sign up, and log out logic
     '''
-
-    __app_context: dict | None = None
-    __gui = None
 
     def __init__(self, gui, app_context: dict):
         super().__init__(
@@ -42,7 +38,7 @@ class SignInUpChoice(FrameBase):
         dict to carry
             <button name>: {
                 'commands': [callable, ...],
-                'styles': [ttk.Style, ...]
+                'styles': [ttk.Style as str, ...]
         }
         '''
 

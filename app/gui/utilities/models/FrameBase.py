@@ -95,6 +95,8 @@ class FrameBase():
                 for style in styles:
                     button_config['style'] = style
 
+            button.configure(**button_config)
+
     # --------------------
     def send_to_route(self, route_name: str):
         '''
@@ -104,4 +106,4 @@ class FrameBase():
         '''
         from app.gui.utilities.routes import send_to_route
 
-        send_to_route(route_name, self._gui)  #type: ignore
+        send_to_route(route_name, self._gui)  # type: ignore

@@ -11,174 +11,169 @@
 # Local imports
 import env
 
-# python imports
-import sqlite3
+# Python imports
+import pyodbc
 import bcrypt
+from typing import Tuple
 
 
-class Database():
+class Database:
     '''
-    class for creating sqlite3 database connection and cursor.
-    creating, altering, and querying sqlite3 databases.
-    Provides methods to connect to a sqlite3 database, execute queries,
-    and manage transactions.
+    Handles SQL Server database connection, query execution,
+    authentication, and user signup.
     '''
 
-    # database url from env.py should be from .env but this is for simplicity
-    database_url: str | None = env.DATABASE_URL
-
-    __connection: sqlite3.Connection | None = None
-    __cursor: sqlite3.Cursor | None = None
+    database: str | None = env.DATABASE_URL
+    db_name: str = env.DB_NAME
+    db_username: str = env.DB_USERNAME
+    db_password: str = env.DB_PASSWORD
 
     def __init__(self):
-        self.connect()
-        self.make_cursor()
+        self.conn_str = (
+            "DRIVER={ODBC Driver 18 for SQL Server};"
+            f"SERVER={self.database};"
+            f"DATABASE={self.db_name};"
+            f"UID={self.db_username};"
+            f"PWD={self.db_password};"
+            "Encrypt=yes;"
+            "TrustServerCertificate=yes;"
+        )
 
-    # --------------------
-    def connect(self):
+        self.__connection: pyodbc.Connection | None = None
+        self.__cursor: pyodbc.Cursor | None = None
+
+        self.connect()
+
+    # -------------------- connection methods --------------------
+
+    def connect(self) -> None:
         '''
-        Establishes a connection to the sqlite3 database and creates a cursor
-            for executing SQL statements.
-        :param self: instance of the Database class
+        Establish database connection and cursor.
         '''
         try:
-            self.__connection = sqlite3.connect(self.database_url)
-            self.make_cursor()
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to connect to database: {e}")
+            self.__connection = pyodbc.connect(self.conn_str)
+            self.__cursor = self.__connection.cursor()
 
-    # --------------------
-    def disconnect(self):
+        except pyodbc.Error as error:
+            raise pyodbc.Error(f"Failed to connect to database: {error}")
+
+    def disconnect(self) -> None:
         '''
-        Closes the connection to the sqlite3 database and the
-            associated cursor.
-        :param self: instance of the Database class
+        Close cursor and database connection.
         '''
         try:
             if self.__cursor:
                 self.__cursor.close()
                 self.__cursor = None
+
             if self.__connection:
                 self.__connection.close()
                 self.__connection = None
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to disconnect from database: {e}")
 
-    # --------------------
-    def make_cursor(self):
-        '''
-        Creates a new cursor object for executing SQL statements.
-        :param self: instance of the Database class
-        '''
-        try:
-            if self.__connection:
-                self.__cursor = self.__connection.cursor()
-            else:
-                raise ConnectionError(
-                    "Database connection is not established."
-                    )
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to create cursor: {e}")
+        except pyodbc.Error as error:
+            raise pyodbc.Error(f"Failed to disconnect from database: {error}")
 
-# ---------------------------- query functions ---------------------------
+    def ensure_connection(self) -> None:
+        '''
+        Reconnect if connection or cursor is missing.
+        '''
+        if self.__connection is None or self.__cursor is None:
+            self.connect()
+
+    # -------------------- query methods --------------------
+
     def execute_query(
             self,
             query: str,
             parameters: tuple = (),
-            fetch_all: bool = True):
+            fetch_all: bool = True
+            ) -> list[tuple] | tuple | None:
         '''
-        Executes a SQL query using the database cursor.
-        :param self: instance of the Database class
-        :param query: SQL query string to execute
-        :param parameters: optional tuple of parameters to pass to the query
-        :param fetch_all: if True, fetch all results from the query
-            and return them, otherwise return one.
-        :return: result of the query, either all rows (list of tuples)
-            if fetch_all is True, or a single row (tuple) if fetch_all is False
+        Execute a SQL query.
+
+        :param query: SQL query string
+        :param parameters: optional query parameters
+        :param fetch_all: True returns all rows, False returns one row
+        :return: query results for SELECT, None for write queries
         '''
-        if not self.__cursor:
-            self.connect()
-            self.make_cursor()
+        self.ensure_connection()
+
         try:
-            if parameters:
-                self.__cursor.execute(query, parameters)
-            else:
-                self.__cursor.execute(query)
+            self.__cursor.execute(query, parameters)
+
+            query_starts_with = query.strip().lower()
+
+            if query_starts_with.startswith("select"):
+                if fetch_all:
+                    return self.__cursor.fetchall()
+                return self.__cursor.fetchone()
+
             self.__connection.commit()
-            if fetch_all:
-                response = self.__cursor.fetchall()
-                self.disconnect()
-                return response
-            else:
-                response = self.__cursor.fetchone()
-                self.disconnect()
-                return response
+            return None
 
-        except sqlite3.Error as e:
-            self.disconnect()
-            raise sqlite3.Error(f"Failed to execute query: {e}")
+        except pyodbc.Error as error:
+            if self.__connection:
+                self.__connection.rollback()
+            raise pyodbc.Error(f"Failed to execute query: {error}")
 
-    # --------------------
-    def drop_table(self, table_name: str):
+    def drop_table(self, table_name: str) -> None:
         '''
-        drops a table from the database if it exists
-        :param self: instance of the Database class
-        :param table_name: name of the table to drop
+        Drop a table if it exists.
         '''
-        if not self.__cursor:
-            self.connect()
-            self.make_cursor()
+        if not table_name.isidentifier():
+            raise ValueError("Invalid table name.")
 
-        drop_table_query = f"DROP TABLE IF EXISTS {table_name};"
-        try:
-            self.__cursor.execute(drop_table_query)
-            self.__connection.commit()
-            print(f"Table {table_name} dropped successfully.")
-            self.disconnect()
-        except sqlite3.Error as e:
-            self.disconnect()
-            raise sqlite3.Error(f"Failed to drop table {table_name}: {e}")
+        query = f"DROP TABLE IF EXISTS {table_name};"
+        self.execute_query(query, fetch_all=False)
 
-    # --------------------
+    # -------------------- user methods --------------------
+
     def authenticate_user(
             self,
-            id: str,
+            user_id: str,
             password: str,
             id_type: str
-            ) -> tuple[bool, str | None]:
+            ) -> tuple[bool, str | None, str | None]:
         '''
-        authenticates a user by checking the id and password
-            against the database
-        :param self: instance of the Database class
-        :param id: id to authenticate
-        :param password: password to authenticate
-        :param id_type: type of id, either 'username' or 'email'
-        :return: tuple of (authenticated: bool, user_role, username:
-            str | None | str)
-        '''
-        if not self.__cursor:
-            self.connect()
-            self.make_cursor()
+        Authenticate user by username or email.
 
-        query = \
-            ("SELECT password, role, username FROM users WHERE username = ?;"
-                if id_type == 'username' else
-                "SELECT password, role, username FROM users WHERE email = ?;")
+        :return: (authenticated, role, username)
+        '''
+        if id_type not in ("username", "email"):
+            print('missing parameters')
+            return False, None, None
+
+        column_name = "username" if id_type == "username" else "email_address"
+
+        query = f'''
+            SELECT password_hash, role_id, username
+            FROM USERS
+            WHERE {column_name} = ?;
+        '''
+
         try:
-            result = self.execute_query(query, (id,), fetch_all=False)
-            if result:
-                stored_password, user_role, username = result
-                authenticated = bcrypt.checkpw(
-                    password.encode('utf-8'),
-                    stored_password.encode('utf-8'))
-                self.disconnect()
-                return authenticated, user_role, username
-            else:
-                self.disconnect()
-                return False, None
-        except sqlite3.Error:
-            self.disconnect()
-            return False, None
+            print('checking for user')
+            result = self.execute_query(
+                query,
+                (user_id,),
+                fetch_all=False
+            )
+
+            if not result:
+                return False, None, None
+
+            stored_password, user_role, username = result
+
+            authenticated = bcrypt.checkpw(
+                password.encode("utf-8"),
+                stored_password.encode("utf-8")
+            )
+
+            return authenticated, user_role, username
+
+        except pyodbc.Error as e:
+            print(f'SQL error: {e}')
+            return False, None, None
 
     # --------------------
     def sign_up_user(
@@ -188,79 +183,104 @@ class Database():
             email: str,
             first_name: str,
             last_name: str,
-            allergies: str,
-            role: str = "subcriber"
+            allergies: bool,
+            campus: str,
+            role: int = 1
             ) -> bool:
         '''
-        signs up a user by inserting their information into the database
-        :param self: instance of the Database class
-        :param username: username of the user to sign up
-        :param password: password of the user to sign up
-        :param email: email of the user to sign up
-        :param first_name: first name of the user to sign up
-        :param last_name: last name of the user to sign up
-        :param role: role of the user to sign up, default is "member"
-        :return: True if the user was signed up successfully, False otherwise
+        Sign up a new user.
         '''
-        if not self.__cursor:
-            self.connect()
-            self.make_cursor()
-
-        if not all(
-            [username, password, email, first_name, last_name, allergies]
-                ):
-            self.disconnect()
-            return False
-
-        hashed_password = bcrypt.hashpw(
-            password.encode('utf-8'),
-            bcrypt.gensalt(12)
-            ).decode('utf-8')
-
-        search_username_email_query = '''
-            SELECT username, email
-            FROM users
-            WHERE username = ? OR email = ?;
-            '''
-        try:
-            exists = self.execute_query(
-                search_username_email_query,
-                (username, email),
-                fetch_all=False)
-            if exists:
-                self.disconnect()
-                return False
-        except sqlite3.Error:
-            self.disconnect()
-            return False
-
-        insert_query = '''
-            INSERT INTO users (
+        required_fields = [
             username,
             password,
             email,
             first_name,
             last_name,
-            role
+            campus
+        ]
+
+        if not all(required_fields):
+            return False
+
+        try:
+            print('checking for user')
+            existing_user = self.execute_query(
+                '''
+                SELECT username, email_address
+                FROM USERS
+                WHERE username = ? OR email_address = ?;
+                ''',
+                (username, email),
+                fetch_all=False
             )
 
-            VALUES (?, ?, ?, ?, ?, ?);
-            '''
-        try:
-            self.execute_query(
-                insert_query,
-                (username,
-                 hashed_password,
-                 email,
-                 first_name,
-                 last_name,
-                 role),
-                fetch_all=False)
-            self.disconnect()
+            print(existing_user)
+
+            if existing_user:
+                print(f'{username} already exists')
+                return False
+
+            print('user not found, continuing signup')
+
+            hashed_password = bcrypt.hashpw(
+                password.encode("utf-8"),
+                bcrypt.gensalt(12)
+            ).decode("utf-8")
+
+            print('inserting user')
+            did_create = self.execute_query(
+                '''
+                INSERT INTO USERS (
+                    first_name,
+                    last_name,
+                    username,
+                    email_address,
+                    password_hash,
+                    role_id
+                )
+                VALUES (?, ?, ?, ?, ?, ?);
+                ''',
+                (
+                    first_name,
+                    last_name,
+                    username,
+                    email,
+                    hashed_password,
+                    role
+                ),
+                fetch_all=False
+            )
+            print(f'result of insert: {did_create}')
             return True
-        except sqlite3.Error:
-            self.disconnect()
+
+        except pyodbc.Error as e:
+            print(f'an error occured: {e}')
             return False
+        
+    # --------------------
+    def get_notes(self) -> Tuple[bool, Tuple[str]]:
+        '''
+        
+        '''
+        self.ensure_connection()
+
+        get_notes_query = \
+            '''
+            SELECT TOP 5 date_time, subject, body_text
+            FROM NOTIFICATIONS
+            ORDER BY notification_id DESC;
+            '''
+
+        try:
+            result = self.execute_query(
+                get_notes_query,
+                fetch_all=True
+            )
+            return True, result
+
+        except pyodbc.Error as e:
+            print(f'SQL Error: {e}')
+            return False, ('none', 'none')
 
 # --------------------------------- static ---------------------------------
     @staticmethod
@@ -269,6 +289,4 @@ class Database():
         runs database rebuild script located in
         app/database/setup/create_database.py
         '''
-        from app.database.setup.create_database import main
-        print("Rebuilding database...")
-        main()
+        pass

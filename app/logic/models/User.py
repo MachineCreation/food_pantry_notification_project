@@ -11,6 +11,7 @@
 # Local imports
 
 # python imports
+from typing import Tuple
 
 
 class User():
@@ -73,14 +74,14 @@ class User():
         database: Database = app_context['database']
 
         if database:
-            authenticated, user_role = database.authenticate_user(
+            authenticated, user_role, username = database.authenticate_user(
                 id,
                 password,
                 id_type
                 )
 
             if authenticated:
-                app_context['user'] = User(id, user_role)
+                app_context['user'] = User(username, user_role)
                 return authenticated
 
         # --------------------
@@ -148,3 +149,17 @@ class User():
         # End of temporary return value
         # --------------------
         return False
+
+    # --------------------
+    @staticmethod
+    def get_notes(app_context: dict) -> Tuple[str]:
+        '''
+
+        '''
+        from app.database.models.Database import Database
+        database: Database = app_context['database']
+        valid, result = database.get_notes()
+
+        if valid:
+            return result
+        return ('error', 'notes now found')

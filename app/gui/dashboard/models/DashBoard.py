@@ -10,6 +10,7 @@
 
 # Local imports
 from app.gui.utilities.models.FrameBase import FrameBase
+from app.logic.models.User import User
 
 # python imports
 from tkinter import ttk
@@ -73,7 +74,7 @@ class DashBoard(FrameBase):
                 self._frame
             )
 
-        if role == 'subscriber':
+        if role == 1:
             self.__send_notification_button.destroy()
             self.__notification_log_button.destroy()
 
@@ -104,7 +105,7 @@ class DashBoard(FrameBase):
                 self._frame
             )
 
-        if role != 'admin':
+        if role != 3:
             self.__create_template_button.destroy()
             self.__manage_users_button.destroy()
 
@@ -138,13 +139,31 @@ class DashBoard(FrameBase):
             self._frame
         )
 
+        # get notes and configure for dashboard
+        notes = User.get_notes(self._app_context)
+        conf_notes = []
+        if notes:
+            for note in notes:
+                conf_notes.append(
+                    f"{note[0]}\n"
+                    f"{note[1]}\n"
+                    f"{note[2]}\n"
+                    "\n--------------------\n\n"
+                )
+
+        conf_notes = "".join(conf_notes)
+
         # bind scrollbar to text area
         self.__recent_notes_scroll.configure(
             command=self.__recent_notes_text.yview
         )
         self.__recent_notes_text.configure(
-            yscrollcommand=self.__recent_notes_scroll.set
+            yscrollcommand=self.__recent_notes_scroll.set,
         )
+
+        if conf_notes != '':
+            self.__recent_notes_text.delete("1.0", "end")
+            self.__recent_notes_text.insert("1.0", conf_notes)
 
         # configure notes widgets
         notes_style = ttk.Style()
