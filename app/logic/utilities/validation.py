@@ -25,16 +25,18 @@ def input_string(entry: object, validation_func: Callable) -> \
     '''
     if isinstance(entry, str):
         value = entry
-    elif hasattr(entry, "get"):
-        value = entry.get()
     else:
-        raise ValueError("Invalid entry type. Must be a string or an object "
-                         "with a get() method.")
+        getter = getattr(entry, "get", None)
+        if callable(getter):
+            value = getter()
+        else:
+            raise ValueError(
+                "Invalid entry type. Must be a string or an object "
+                "with a get() method."
+            )
 
     valid, return_param = validation_func(value)
-    if return_param is None:
-        return valid
-    return valid, return_param
+    return valid if return_param is None else (valid, return_param)
 
 
 # -------------------------- validation functions -----------------------------

@@ -80,14 +80,12 @@ class DashBoard(FrameBase):
         else:
             self.__send_notification_button.configure(
                 command=lambda: self.send_to_route(
-                    "send_notification",
-                    self._gui
+                    "send_notification"
                     )
                 )
             self.__notification_log_button.configure(
                 command=lambda: self.send_to_route(
-                    "notification_log",
-                    self._gui
+                    "notification_log"
                     )
             )
 
@@ -113,14 +111,12 @@ class DashBoard(FrameBase):
         else:
             self.__create_template_button.configure(
                 command=lambda: self.send_to_route(
-                    "create_template",
-                    self._gui
+                    "create_template"
                     )
             )
             self.__manage_users_button.configure(
                 command=lambda: self.send_to_route(
-                    "manage_users",
-                    self._gui
+                    "manage_users"
                     )
             )
 

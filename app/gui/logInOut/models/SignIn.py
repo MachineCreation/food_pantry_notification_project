@@ -42,51 +42,20 @@ class SignIn(FrameBase):
         helper method to sign in the user
         :return: None
         '''
-        try:
-            valid_uname_or_email, uname_email = input_string(
-                self.__username_entry,
-                is_email_or_username
-                )
-
-            if not valid_uname_or_email:
-                showwarning(
-                    "Invalid Input",
-                    "Please enter a valid username or email."
-                )
-
-        except ValueError:
-            showwarning(
-                "Error",
-                "An error occurred while validating the username or email."
-            )
-            self.clear_entries()
+        valid_uname_or_email, uname_email = self.__validate_username_or_email()
+        if not valid_uname_or_email:
             return
 
-        try:
-            valid_password = input_string(
-                self.__password_entry,
-                non_empty_string
-                )
-
-            if not valid_password:
-                showwarning(
-                    "Invalid Input",
-                    "Please enter a valid password."
-                )
-                self.clear_entries()
-                return
-
-        except ValueError:
-            showwarning(
-                "Error",
-                "An error occurred while validating the password."
-            )
-            self.clear_entries()
+        valid_password = self.__validate_password()
+        if not valid_password:
             return
+
+        username_or_email = self.__username_entry.get()
+        password = self.__password_entry.get()
 
         authenticated: bool = User.authenticate(
-            password=self.__password_entry.get(),
-            id=self.__username_entry.get(),
+            password=password,
+            id=username_or_email,
             id_type=uname_email,
             app_context=self._app_context)
 
@@ -100,6 +69,66 @@ class SignIn(FrameBase):
             self.clear_entries()
 
     # --------------------
+    def __validate_username_or_email(self) -> tuple[bool, str | None]:
+        '''
+        validate the username/email field and return its detected id type
+        :return: (is_valid, id_type)
+        '''
+        try:
+            valid_uname_or_email, uname_email = input_string(
+                self.__username_entry,
+                is_email_or_username
+            )
+
+        except ValueError:
+            showwarning(
+                "Error",
+                "An error occurred while validating the username or email."
+            )
+            self.clear_entries()
+            return False, None
+
+        if not valid_uname_or_email:
+            showwarning(
+                "Invalid Input",
+                "Please enter a valid username or email."
+            )
+            self.clear_entries()
+            return False, None
+
+        return True, uname_email
+
+    # --------------------
+    def __validate_password(self) -> bool:
+        '''
+        validate the password field
+        :return: True when valid, otherwise False
+        '''
+        try:
+            valid_password = input_string(
+                self.__password_entry,
+                non_empty_string
+            )
+
+        except ValueError:
+            showwarning(
+                "Error",
+                "An error occurred while validating the password."
+            )
+            self.clear_entries()
+            return False
+
+        if not valid_password:
+            showwarning(
+                "Invalid Input",
+                "Please enter a valid password."
+            )
+            self.clear_entries()
+            return False
+
+        return True
+
+    # --------------------
     def register_entries(self) -> None:
         '''
         helper method to register and configure the entry fields for
@@ -111,9 +140,10 @@ class SignIn(FrameBase):
             "username_entry",
             self._frame
             )
+        entry_font = ("Arial", 12)
 
         self.__username_entry.config(
-            font=("Arial", 12),
+            font=entry_font,
         )
 
         # get and config password entry
@@ -122,12 +152,8 @@ class SignIn(FrameBase):
             self._frame
             )
         self.__password_entry.config(
-            font=("Arial", 12),
-            show="*",
-            validate="focusout",
-            validatecommand=(
-                input_string(self.__password_entry, non_empty_string)
-                )
+            font=entry_font,
+            show="*"
         )
 
     # --------------------

@@ -55,25 +55,26 @@ class SignUp(FrameBase):
         run validation and sign up the user
         :return: None
         '''
-        entries = [
-            self.__first_name_entry.get(),
-            self.__last_name_entry.get(),
-            self.__username_entry.get(),
-            self.__email_entry.get(),
-            self.__password_entry.get(),
-            self.__campus_entry.get(),
-            self.__allergies_bool.get(),
-            self._app_context
-            ]
+        first_name, last_name, username, email, password, campus = \
+            self.__required_values
+
         if not all(input_string(entry, non_empty_string)
-                   for entry in entries[:-2]):
+                   for entry in self.__required_values):
             showwarning(
                 "Invalid Input",
                 "Please fill in all fields before signing up."
             )
             return
+
         signed_up = User.sign_up(
-            *entries
+            first_name,
+            last_name,
+            username,
+            email,
+            password,
+            campus,
+            self.__allergies_bool.get(),
+            self._app_context
         )
 
         if not signed_up:
@@ -227,21 +228,49 @@ class SignUp(FrameBase):
             self._builder.get_object(
                 "allergies_entry",
                 self._frame)
-        self.__allergies_entry.configure(variable=self.__allergies_bool)
-        self.__allergies_entry.configure(style="Big.TCheckbutton")
+        self.__allergies_entry.configure(
+            variable=self.__allergies_bool,
+            style="Big.TCheckbutton"
+        )
 
     def clear_fields(self):
         '''
         Clear all input fields in the sign-up form
         '''
-        self.__first_name_entry.delete(0, tkinter.END)
-        self.__last_name_entry.delete(0, tkinter.END)
-        self.__username_entry.delete(0, tkinter.END)
-        self.__email_entry.delete(0, tkinter.END)
-        self.__password_entry.delete(0, tkinter.END)
-        self.__confirm_password_entry.delete(0, tkinter.END)
+        for entry in self.__clearable_entries:
+            entry.delete(0, tkinter.END)
         self.__campus_entry.set('')
         self.__allergies_bool.set(False)
+
+    @property
+    def __required_values(self) -> tuple[str, str, str, str, str, str]:
+        '''
+        helper method to get required sign-up form values
+        :return: tuple of required form values
+        '''
+        return (
+            self.__first_name_entry.get(),
+            self.__last_name_entry.get(),
+            self.__username_entry.get(),
+            self.__email_entry.get(),
+            self.__password_entry.get(),
+            self.__campus_entry.get()
+        )
+
+    @property
+    def __clearable_entries(self) -> tuple[ttk.Entry, ...]:
+        '''
+        helper method to get entries to clear
+        :return: tuple of clearable entries
+        '''
+        return (
+            self.__first_name_entry,
+            self.__last_name_entry,
+            self.__username_entry,
+            self.__email_entry,
+            self.__password_entry,
+            self.__confirm_password_entry
+        )
 
 # --------------------------------- properties -------------------------------
     @property

@@ -3,14 +3,15 @@
 # filename: app/gui/utilities/models/FrameBase.py
 # Author: Joseph Egan
 # 2026-04-22
-# Sources: 
-# Contributors: 
+# Sources:
+# Contributors:
 # -------------------------------------------------------------------------------
-# Description: 
+# Description:
 
 # Local imports
 
 # python imports
+from functools import partial
 from tkinter import ttk
 import tkinter
 import pygubu
@@ -23,6 +24,7 @@ class FrameBase():
 
     _app_context: dict | None = None
     _gui: tkinter.Tk | None = None
+    _builder: pygubu.Builder | None = None
 
     def __init__(
             self,
@@ -37,7 +39,12 @@ class FrameBase():
         self._gui: GUI = gui
         self._app_context: dict = app_context
 
-        if not frame:
+        if frame is None:
+            if file_path is None or frame_name is None:
+                raise ValueError(
+                    "file_path and frame_name are required when frame is None"
+                )
+
             self._builder: pygubu.Builder = pygubu.Builder()
 
             self._builder.add_from_file(file_path)
@@ -68,21 +75,31 @@ class FrameBase():
         :param buttons: dict of button names, commands, and styles
         :return: None
         '''
+        if self._builder is None:
+            raise RuntimeError(
+                "register_buttons requires a pygubu builder-backed frame"
+            )
+
         for button_name, button_info in buttons.items():
             button: ttk.Button = self._builder.get_object(
                 button_name,
                 self._frame
             )
 
-            if button_info['commands'] != []:
-                for func, param in button_info['commands'].items():
-                    button.configure(
-                        command=lambda func=func,
-                        param=param: func(*param))
+            button_config: dict[str, object] = {}
 
-            if button_info['styles'] != []:
-                for style in button_info['styles']:
-                    button.configure(style=style)
+            commands = button_info.get('commands', {})
+            if commands:
+                for func, param in commands.items():
+                    button_config['command'] = partial(func, *param)
+
+            styles = button_info.get('styles', [])
+            if styles:
+                for style in styles:
+                    button_config['style'] = style
+
+            if button_config:
+                button.configure(**button_config)
 
     # --------------------
     def send_to_route(self, route_name: str):
