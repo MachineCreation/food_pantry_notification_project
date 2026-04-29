@@ -81,7 +81,7 @@ class SignUp(FrameBase):
         if not signed_up:
             showwarning(
                 "Sign Up Failed",
-                "Username or email in use please try again"
+                "Try again or contact the Administrator"
             )
             self.clear_fields()
         else:
