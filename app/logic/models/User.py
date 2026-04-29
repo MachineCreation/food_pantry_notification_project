@@ -86,6 +86,8 @@ class User():
 
         # --------------------
         # Temporary return value until database is implemented
+        # AND an admin profile is created.
+        # currently NO admin profile
         # --------------------
         if id == "admin" and password == "admin":
             app_context['user'] = User(id, "admin")
@@ -132,22 +134,22 @@ class User():
                 email,
                 first_name,
                 last_name,
-                campus,
-                allergies
+                allergies,
+                campus
                 )
             if signed_up:
                 return signed_up
 
-        # --------------------
-        # Temporary return value until database is implemented
-        # --------------------
-        if (username and password and email and
-                first_name and last_name and campus):
-            print(f"Signed up user {username}: {email}")
-            return True
-        # --------------------
-        # End of temporary return value
-        # --------------------
+        # # --------------------
+        # # Temporary return value until database is implemented
+        # # --------------------
+        # if (username and password and email and
+        #         first_name and last_name and campus):
+        #     print(f"Signed up user {username}: {email}")
+        #     return True
+        # # --------------------
+        # # End of temporary return value
+        # # --------------------
         return False
 
     # --------------------

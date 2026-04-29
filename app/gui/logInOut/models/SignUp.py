@@ -242,7 +242,7 @@ class SignUp(FrameBase):
         self.__allergies_bool.set(False)
 
     @property
-    def __required_values(self) -> tuple[str, str, str, str, str, str]:
+    def __required_values(self) -> Tuple[str, str, str, str, str, str]:
         '''
         helper method to get required sign-up form values
         :return: tuple of required form values
@@ -257,7 +257,7 @@ class SignUp(FrameBase):
         )
 
     @property
-    def __clearable_entries(self) -> tuple[ttk.Entry, ...]:
+    def __clearable_entries(self) -> Tuple[ttk.Entry, ...]:
         '''
         helper method to get entries to clear
         :return: tuple of clearable entries
