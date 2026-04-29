@@ -64,10 +64,12 @@ The dashboard UI also references future routes for notification and user-managem
 - Python 3.14
 - Tkinter support in the Python installation
 - Windows PowerShell if you want to use the commands below as written
+- ODBC driver 17+
 
 ## Quick Start
 
 ```powershell
+winget install Microsoft.msodbcsql.18
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
@@ -81,10 +83,10 @@ Environment values are loaded from `.env` through `env.py`. If a variable is not
 Example `.env`:
 
 ```env
-DATABASE_URL=app/Database/database.db
-ADMIN_USERNAME=admin
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123
+DATABASE_URL=<database url>
+DB_NAME=<database name>
+DB_USERNAME=<database username>
+DB_PASSWORD=<database password>
 ```
 
 Current defaults in `env.py`:
@@ -144,15 +146,14 @@ food_pantry/
 - `main.py` is the application entry point.
 - `app/gui/GUI.py` owns the root window and application context.
 - `app/gui/utilities/routes.py` is the route dispatcher.
-- `app/logic/models/User.py` currently mixes real database calls with temporary fallback authentication values for development.
+- `app/logic/models/User.py` currently mixes real database calls with temporary fallback authentication values for development. For admin access
 - `app/database/setup/create_database.py` exists as the intended database setup entry point, but it is not implemented yet.
 
 ## Development Priorities
 
 1. Implement the database bootstrap script.
-2. Finish database-backed sign-in and sign-up behavior end to end.
-3. Register and build the remaining dashboard destination routes.
-4. Add tests around validation, authentication, and database integration.
+2. Register and build the remaining dashboard destination routes.
+3. Add tests around validation, authentication, and database integration.
 
 ## License
 
