@@ -1,27 +1,41 @@
+#!/usr/bin/env python3.14
 # -------------------------------------------------------------------------------
 # filename:notification_log.py
 # Author: Justin Crump
-# 2026-04-
+# 2026-04-29
 # Sources:
 # Contributors:
 # -------------------------------------------------------------------------------
 # Description: GUI for notification log search and review.
 
+# Local Imports
+from app.logic.models.LogRecord import LogRecord
+
+# Python Imports
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkcalendar import DateEntry
+from tkinter import messagebox
 from datetime import date
-from app.logic.models.LogRecord import LogRecord
-from app.Database.models.t_database import Database
-
+from typing import Any
 
 class NotificationLog:
     """
     GUI component for viewing and filtering notification logs.
     Provides date filters, a results table, and navigation controls.
     """
-    def __init__(self, parent, app_context) -> None:
+    def __init__(
+            self,
+            parent: Any,
+            app_context: Any
+    ) -> None:
+        """
+        Initializes the notification log GUI
 
+        Parameters:
+            parent (Any): Parent GUI object
+            app_context (Any): Shared application context
+        """
         self.parent = parent
         self.app_context = app_context
 
@@ -76,6 +90,9 @@ class NotificationLog:
         clear_button = ttk.Button(input_frame, text="Clear", command=self.clear)
         clear_button.grid(column=5, row=0)
 
+        display_all_button = ttk.Button(input_frame, text="Display All", command=self.display_all)
+        display_all_button.grid(column=5, row=1)
+
         # Table container
         tree_frame = ttk.Frame(top_level)
         tree_frame.grid(column=0, row=3, sticky="nsew")
@@ -94,7 +111,7 @@ class NotificationLog:
 
         #Column widths
         self.tree.column("date", width=150, stretch=False)
-        self.tree.column("subject", width=250, stretch=True)
+        self.tree.column("subject", width=150, stretch=False)
         self.tree.column("message", width=400, stretch=True)
         self.tree.column("sender", width=100, stretch=False)
         self.tree.column("recipients", width=75, stretch=False)
@@ -103,7 +120,6 @@ class NotificationLog:
         scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
         scrollbar.grid(column=1, row=0, sticky="ns")
         self.tree.configure(yscrollcommand=scrollbar.set)
-
 
         self.mainwindow = top_level
 
@@ -135,19 +151,54 @@ class NotificationLog:
         from app.GUI.utilities.routes import send_to_route
         send_to_route("dashboard", self.parent)
 
-    def search(self):
+    def search(self) -> None:
+        """
+        Search the database for records
+        """
         start = self.startdate_entry.get_date()
         end = self.enddate_entry.get_date()
 
+        if end < start:
+            messagebox.showerror("Invalid Date Range", "End date must be after start date")
+            return
+
         self.tree.delete(*self.tree.get_children())
 
-        all_data = LogRecord.search()
+        try:
+            all_data = LogRecord.search(start, end)
+        except Exception as e:
+            messagebox.showerror("Error: ", str(e))
+            return
 
         for data in all_data:
-            self.tree.insert("", tk.END, values=(data.get_date(), data.get_subject(),
-                                                 data.get_message(), data.get_sender(), data.get_recipients()), )
+            self.tree.insert(
+                "",
+                tk.END,
+                values=(
+                    data.get_date(),
+                    data.get_subject(),
+                    data.get_message(),
+                    data.get_sender(),
+                    data.get_recipients()
+                )
+            )
 
-        print(f"Start Date: {start}")
-        print(f"End Date: {end}")
+    def display_all(self) -> None:
+        """
+        Display all records
+        """
+        self.tree.delete(*self.tree.get_children())
+        all_data = LogRecord.display_all()
 
-
+        for data in all_data:
+            self.tree.insert(
+                "",
+                tk.END,
+                values=(
+                    data.get_date(),
+                    data.get_subject(),
+                    data.get_message(),
+                    data.get_sender(),
+                    data.get_recipients()
+                )
+            )

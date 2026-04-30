@@ -1,8 +1,29 @@
+#!/usr/bin/env python3.14
+# -------------------------------------------------------------------------------
+# filename:rebuild_database.py
+# Author: Justin Crump
+# 2026-04-29
+# Sources:
+# Contributors:
+# -------------------------------------------------------------------------------
+# Description: Utility script to rebuild database tables if they do not exist
+
+# Local Imports
 from app.Database.models.t_database import Database
 
-def create_table():
-    cursor = Database.cursor()
+# Python Imports
 
+def create_table() -> None:
+    """
+    Create all required database tables if they do not already exist.
+    THis script is intended as a setup utility and is not part of normal runtime
+    """
+    with Database.connect() as conn:
+        cursor = Database.cursor()
+
+    """
+    ROLES Table
+    """
     cursor.execute("""
     IF NOT EXISTS (
         SELECT * 
@@ -19,6 +40,9 @@ def create_table():
                 );""")
     print("Roles table created successfully")
 
+    """
+    IMAGES Table
+    """
     cursor.execute("""
     IF NOT EXISTS (
         SELECT * 
@@ -33,6 +57,9 @@ def create_table():
             );""")
     print("Images table created successfully")
 
+    """
+    USERS Table
+    """
     cursor.execute("""
     IF NOT EXISTS (
         SELECT * 
@@ -54,6 +81,9 @@ def create_table():
             );""")
     print("Users table created successfully")
 
+    """
+    TEMPLATE Table
+    """
     cursor.execute("""
     IF NOT EXISTS (
     SELECT *
@@ -61,7 +91,6 @@ def create_table():
     WHERE   name='TEMPLATE'
     AND     xtype='U'
     )
-    
     CREATE TABLE TEMPLATE (
         template_id     INTEGER IDENTITY(1,1)         PRIMARY KEY,
         template_name   NVARCHAR(255)   NOT NULL UNIQUE,
@@ -73,6 +102,9 @@ def create_table():
                 );""")
     print("Template table created successfully")
 
+    """
+    NOTIFICATIONS Table
+    """
     cursor.execute("""
     IF NOT EXISTS (
     SELECT *
@@ -99,7 +131,9 @@ def create_table():
                 );""")
     print("Notifications table created successfully")
 
-    Database.connect().commit()
+    """
+    Starter Data
+    """
 
     cursor.execute("""
     INSERT INTO ROLES (role)
@@ -109,7 +143,7 @@ def create_table():
 
     cursor.execute("""
     INSERT INTO IMAGES (image_location)
-        VALUES ('/images/welcome.png'), ('/images/alert.png'), ('/images.news.png');
+        VALUES ('/images/welcome.png'), ('/images/alert.png'), ('/images/news.png');
     """)
     print("Images data added safely")
 
@@ -130,9 +164,9 @@ def create_table():
 
     cursor.execute("""
     INSERT INTO NOTIFICATIONS (sender_id, template_id, subject, body_text, num_recip, image_id, date_time)
-        VALUES (3, 1, 'Welcome!', 'Thanks for joining our platform.', 1, 1, GETDATE()),
-            (2, 2, 'System Alert', 'Please review the latest system update.', 3, 2, GETDATE()),
-            (1, 1, 'Greetings', 'We are glad to have you here.', 2, 3, GETDATE());
+        VALUES (3, 1, 'Welcome!', 'Thanks for joining our platform.', 1, 1, '2024-01-15T10:30:00'),
+            (2, 2, 'System Alert', 'Please review the latest system update.', 3, 2, '2025-07-21T05:30:00'),
+            (1, 1, 'Greetings', 'We are glad to have you here.', 2, 3, '2026-03-11T12:30:00');
     """)
     print("Notification data added safely")
 
@@ -140,16 +174,6 @@ def create_table():
 
 
 if __name__ == "__main__":
-    try:
-        Database.connect()
-        print("Connected to database")
-
-        create_table()
-
-    except Exception as e:
-        print("Error: ", e)
-
-    finally:
-        Database.close_connection()
-        print("Connection Closed")
+    create_table()
+    print("Database rebuild complete.")
 
