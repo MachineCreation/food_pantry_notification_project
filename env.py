@@ -15,7 +15,10 @@ import dotenv, os
 
 dotenv.load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL") or 'app/Database/database.db'
+DB_HOST = os.getenv("DB_HOST") or "cisdbss.pcc.edu"
+DB_USER = os.getenv("DB_USER") or "CIS234A_Pi"
+DB_NAME = os.getenv("DB_NAME") or "CIS234A_Pi"
+DB_PASS = os.getenv("DB_PASS") or "Planet$"
 
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME") or 'admin'
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL") or 'admin@example.com'

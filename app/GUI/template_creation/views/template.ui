@@ -87,7 +87,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Entry" id="entry2">
+              <object class="ttk.Entry" id="subject_entry" named="True">
                 <property name="width">26</property>
                 <layout manager="grid">
                   <property name="column">1</property>
@@ -110,7 +110,7 @@
               </object>
             </child>
             <child>
-              <object class="tk.Text" id="text1">
+              <object class="tk.Text" id="message_text" named="True">
                 <property name="height">5</property>
                 <property name="width">30</property>
                 <layout manager="grid">
@@ -130,7 +130,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Combobox" id="combobox1">
+              <object class="ttk.Combobox" id="tags_combobox" named="True">
                 <layout manager="grid">
                   <property name="column">1</property>
                   <property name="ipady">5</property>
@@ -151,7 +151,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Combobox" id="combobox2">
+              <object class="ttk.Combobox" id="existing_templates_combobox" named="True">
                 <property name="width">26</property>
                 <layout manager="grid">
                   <property name="column">10</property>

@@ -1,124 +1,86 @@
 #!/usr/bin/env python3.14
-# -------------------------------------------------------------------------------
-# filename: Database.py
-# Author: Lloyd Truong
-# 2026-04-23
-# Sources: None
-# Contributors: 
-# -------------------------------------------------------------------------------
-# Description: database class for basic database functions
 
-# Local imports
 import env
-
-# python imports
-import sqlite3
-
-class Database():
-    '''
-    class for creating sqlite3 database connection and cursor.
-    creating, altering, and querying sqlite3 databases.
-    Provides methods to connect to a sqlite3 database, execute queries, and manage transactions.
-    '''
-
-    # database url from env.py should be from .env but this is for simplicity
-    database_url: str | None = env.DATABASE_URL
-
-    __connection: sqlite3.Connection | None = None
-    __cursor: sqlite3.Cursor | None = None
+import pyodbc
 
 
+class Database:
     def __init__(self):
-        pass
+        self.host = env.DB_HOST
+        self.user = env.DB_USER
+        self.password = env.DB_PASS
+        self.database = env.DB_NAME
+        self._connection = None
+        self._cursor = None
 
     def connect(self):
-        '''
-        Establishes a connection to the sqlite3 database and creates a cursor for executing SQL statements.
-        :param self: instance of the Database class
-        '''
-        try:
-            self.__connection = sqlite3.connect(self.database_url)
-            self.make_cursor()
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to connect to database: {e}")
+        """
+        opens a connection to the SQL Server database
+        """
+        connection_string = (
+            "DRIVER={ODBC Driver 17 for SQL Server};"
+            f"SERVER={self.host},1433;"
+            f"DATABASE={self.database};"
+            f"UID={self.user};"
+            f"PWD={self.password};"
+            "Encrypt=yes;"
+            "TrustServerCertificate=yes;"
+        )
+        self._connection = pyodbc.connect(connection_string, timeout=10)
+        self._cursor = self._connection.cursor()
+        print("Successfully connected to PCC Remote Database!")
 
     def disconnect(self):
-        '''
-        Closes the connection to the sqlite3 database and the associated cursor.
-        :param self: instance of the Database class
-        '''
-        try:
-            if self.__cursor:
-                self.__cursor.close()
-                self.__cursor = None
-            if self.__connection:
-                self.__connection.close()
-                self.__connection = None
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to disconnect from database: {e}")
+        """
+        closes the database cursor and connection if they are open
+        """
+        if self._cursor:
+            self._cursor.close()
+            self._cursor = None
+        if self._connection:
+            self._connection.close()
+            self._connection = None
 
-    def make_cursor(self):
-        '''
-        Creates a new cursor object for executing SQL statements.
-        :param self: instance of the Database class
-        '''
-        try:
-            if self.__connection:
-                self.__cursor = self.__connection.cursor()
-            else:
-                raise ConnectionError("Database connection is not established.")
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to create cursor: {e}")
-        
     def execute_query(self, query: str, parameters: tuple = (), fetch_all: bool = True):
-        '''
-        Executes a SQL query using the database cursor.
-        :param self: instance of the Database class
+        """
+        executes a SQL query using the active database cursor
         :param query: SQL query string to execute
-        :param parameters: optional tuple of parameters to pass to the query
-        :param fetch_all: if True, fetch all results from the query and return them, 
-        otherwise return one.
-        :return: result of the query, either all rows (list of tuples) if fetch_all is True, 
-        or a single row (tuple) if fetch_all is False
-        '''
-        if not self.__cursor:
+        :param parameters: optional tuple of values for parameterized SQL
+        :param fetch_all: if True, return all rows for SELECT queries otherwise return one row
+        :return: query results for SELECT statements or True for successful non-SELECT statements
+        """
+        if not self._cursor:
             raise ConnectionError("Database cursor is not established.")
-        try:
-            if parameters:
-                self.__cursor.execute(query, parameters)
-            else:
-                self.__cursor.execute(query)
-            self.__connection.commit()
-            if fetch_all:
-                return self.__cursor.fetchall()
-            else:
-                return self.__cursor.fetchone()
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to execute query: {e}")
 
-    # --------------------
+        if parameters:
+            self._cursor.execute(query, parameters)
+        else:
+            self._cursor.execute(query)
+
+        is_select = query.strip().upper().startswith("SELECT")
+        if is_select:
+            return self._cursor.fetchall() if fetch_all else self._cursor.fetchone()
+
+        self._connection.commit()
+        return True
+
     def drop_table(self, table_name: str):
-        '''
-        drops a table from the database if it exists
-        :param self: instance of the Database class
-        :param table_name: name of the table to drop
-        '''
-        if not self.__cursor:
+        """
+        drops the given table from the database if it exists
+        :param table_name: name of the table to remove
+        """
+        if not self._cursor:
             raise ConnectionError("Database cursor is not established.")
         drop_table_query = f"DROP TABLE IF EXISTS {table_name};"
         try:
-            self.__cursor.execute(drop_table_query)
-            self.__connection.commit()
+            self._cursor.execute(drop_table_query)
+            self._connection.commit()
             print(f"Table {table_name} dropped successfully.")
-        except sqlite3.Error as e:
-            raise sqlite3.Error(f"Failed to drop table {table_name}: {e}")
-        
-    # --------------------
+        except pyodbc.Error as e:
+            raise pyodbc.Error(f"Failed to drop table {table_name}: {e}")
+
     @staticmethod
     def rebuild_database():
-        '''
-        runs database rebuild script located in app/Database/setup/create_database.py
-        '''
         from app.Database.setup.create_database import main
         print("Rebuilding database...")
         main()

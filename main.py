@@ -13,6 +13,7 @@ from app.GUI.GUI import GUI
 
 # python imports
 from tkinter import Tk
+from app.Database.models.Database import Database
 
 
 def main():
@@ -21,8 +22,10 @@ def main():
     root = Tk()
     root.title("Food Pantry Notification App")
 
-    # future injection point
-    app_context = {}
+    db = Database()
+    db.connect()
+
+    app_context = {"database": db}
 
     # create the GUI instance
     gui = GUI(root, app_context)
@@ -30,6 +33,9 @@ def main():
     # start the main event loop
     root.mainloop()
 
+    db.disconnect()
+
 
 if __name__ == "__main__":
     main()
+
