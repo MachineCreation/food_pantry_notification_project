@@ -23,6 +23,7 @@ def send_to_route(route: str, gui: Callable) -> None:
     from app.gui.logInOut.models.SignUp import SignUp
     from app.gui.logInOut.models.SignInUpChoice import SignInUpChoice
     from app.gui.dashboard.models.DashBoard import DashBoard
+    from app.gui.notificationlog.NotificationLog import NotificationLog
 
     if not isinstance(gui, GUI):
         raise TypeError("Expected a GUI instance")
@@ -34,8 +35,8 @@ def send_to_route(route: str, gui: Callable) -> None:
         "sign_up": SignUp,
         "sign_in_up_choice": SignInUpChoice,
         "dashboard": DashBoard,
+        "notification_log": NotificationLog,
         # "send_notification": ,
-        # "notification_log": ,
         # "create_template": ,
         # "manage_users": ,
         }
