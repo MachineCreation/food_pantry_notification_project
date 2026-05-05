@@ -20,7 +20,7 @@ from app.logic.utilities.validation import is_valid_password, \
 from tkinter import ttk
 from tkinter.messagebox import showwarning, showinfo
 import tkinter
-from typing import Callable, Any
+from typing import Callable, Any, Tuple
 
 
 class SignUp(FrameBase):
@@ -32,7 +32,10 @@ class SignUp(FrameBase):
         "Cascade",
         "Rock Creek",
         "Southeast",
-        "Sylvania"]
+        "Sylvania"
+        ]
+
+    __tooltips = []
 
     def __init__(self, gui, app_context: dict):
         super().__init__(
@@ -50,13 +53,30 @@ class SignUp(FrameBase):
         self.config_campus_dropdown()
         self.config_allergies_checkbox()
 
+        widgets = [
+            self.__first_name_entry,
+            self.__last_name_entry,
+            self.__username_entry,
+            self.__email_entry,
+            self.__password_entry,
+            self.__confirm_password_entry,
+            self.__campus_entry,
+        ]
+
+        for idx, widget in enumerate(widgets):
+            widget.bind(
+                "<Tab>",
+                lambda e, idx=idx: (widgets[(idx + 1) % len(widgets)]
+                                    .focus_set(), "break")[1]
+            )
+
     # --------------------
     def sign_up(self) -> None:
         '''
         run validation and sign up the user
         :return: None
         '''
-        first_name, last_name, username, email, password, campus = \
+        first_name, last_name, username, email, password, conf_pass, campus = \
             self.__required_values
 
         if not all(input_string(entry, non_empty_string)
@@ -138,6 +158,15 @@ class SignUp(FrameBase):
             self.__email_entry.delete(0, tkinter.END)
 
 # --------------------------------- config ---------------------------------
+    # --------------------
+    def focus_next_widget(self, event):
+        '''
+        function to order tab events
+        '''
+        event.widget.tk_focusNext().focus()
+        return "break"
+
+    # --------------------
     def config_plain_entries(self):
         '''
         Entries that have no tool tips or special behavior can be
@@ -167,6 +196,7 @@ class SignUp(FrameBase):
             )
         )
 
+    # --------------------
     def config_password_entries(self):
         '''
         Configure password entry fields to hide input and add tool tips
@@ -175,36 +205,41 @@ class SignUp(FrameBase):
             self._builder.get_object(
                 "password_entry",
                 self._frame)
-        pw_focus_tool_tip = EntryBehavior.attach(
+        pw_tool_tip = EntryBehavior.attach(
             self.__password_entry,
             "Enter password",
             "\nPassword must be at least 8 characters\n"
         )
+        for tool_tip in pw_tool_tip:
+            self.__tooltips.append(tool_tip)
         self.__password_entry.bind(
-            "<FocusOut>",
+            "<Leave>",
             lambda e: (self.show_passwords_valid(
                 is_valid_password(self.__password_entry.get())
-                ), pw_focus_tool_tip.hide(e)) #type: ignore
+                ), pw_tool_tip[0].hide(e), pw_tool_tip[1].hide(e))  # type: ignore
             )
 
         self.__confirm_password_entry: ttk.Entry = \
             self._builder.get_object(
                 "confirm_password_entry",
                 self._frame)
-        focus_tool_tip = EntryBehavior.attach(
+        cpw_tool_tip = EntryBehavior.attach(
             self.__confirm_password_entry,
             "Confirm password",
             "\nPassword fields must match\n"
         )
+        for tool_tip in cpw_tool_tip:
+            self.__tooltips.append(tool_tip)
         self.__confirm_password_entry.bind(
             "<FocusOut>",
             lambda e: (self.show_password_mismatch(
                 validate_passwords_match(
                     self.__password_entry.get(),
                     self.__confirm_password_entry.get())
-                ), focus_tool_tip.hide(e)) #type: ignore
+                ), cpw_tool_tip[0].hide(e), cpw_tool_tip[1].hide(e))  # type: ignore
             )
 
+    # --------------------
     def config_campus_dropdown(self):
         '''
         Configure campus dropdown menu
@@ -216,6 +251,7 @@ class SignUp(FrameBase):
                 self._frame)
         self.__campus_entry['values'] = self.__campuses
 
+    # --------------------
     def config_allergies_checkbox(self):
         '''
         Configure allergies checkbox
@@ -232,6 +268,7 @@ class SignUp(FrameBase):
             style="Big.TCheckbutton"
         )
 
+    # --------------------
     def clear_fields(self):
         '''
         Clear all input fields in the sign-up form
@@ -241,6 +278,7 @@ class SignUp(FrameBase):
         self.__campus_entry.set('')
         self.__allergies_bool.set(False)
 
+# ------------------------------ properties ---------------------------------
     @property
     def __required_values(self) -> Tuple[str, str, str, str, str, str]:
         '''
@@ -253,6 +291,7 @@ class SignUp(FrameBase):
             self.__username_entry.get(),
             self.__email_entry.get(),
             self.__password_entry.get(),
+            self.__confirm_password_entry.get(),
             self.__campus_entry.get()
         )
 

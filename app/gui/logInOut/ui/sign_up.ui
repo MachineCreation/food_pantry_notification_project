@@ -63,9 +63,9 @@
       </object>
     </child>
     <child>
-      <object class="ttk.Frame" id="frame8">
+      <object class="ttk.Frame" id="take_focus" named="True">
         <property name="height">200</property>
-        <property name="takefocus">true</property>
+        <property name="takefocus">false</property>
         <property name="width">200</property>
         <layout manager="grid">
           <property name="column">0</property>

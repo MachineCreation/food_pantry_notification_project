@@ -32,4 +32,5 @@ class EntryBehavior:
             focus_tool_tip = ToolTip(widget, focus_text)
             widget.bind("<FocusIn>", focus_tool_tip.show)
             widget.bind("<FocusOut>", focus_tool_tip.hide)
-            return focus_tool_tip
+
+        return focus_tool_tip, hover_tool_tip
