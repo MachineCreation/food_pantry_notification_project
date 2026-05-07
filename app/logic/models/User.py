@@ -84,26 +84,6 @@ class User():
                 app_context['user'] = User(username, user_role)
                 return authenticated
 
-        # --------------------
-        # Temporary return value until database is implemented
-        # AND an admin profile is created.
-        # currently NO admin profile
-        # --------------------
-        if id == "admin" and password == "admin":
-            app_context['user'] = User(id, "admin")
-            print("Authenticated as admin")
-            return True
-        elif id == "member" and password == "member":
-            app_context['user'] = User(id, "member")
-            print("Authenticated as member")
-            return True
-        elif id == "subscriber" and password == "subscriber":
-            app_context['user'] = User(id, "subscriber")
-            print("Authenticated as subscriber")
-            return True
-        # --------------------
-        # End of temporary return value
-        # --------------------
         return False
 
     # --------------------
@@ -129,27 +109,17 @@ class User():
 
         if database:
             signed_up = database.sign_up_user(
-                username,
+                username.strip().lower().title(),
                 password,
-                email,
-                first_name,
-                last_name,
+                email.strip().lower(),
+                first_name.strip().lower().title(),
+                last_name.strip().lower().title(),
                 allergies,
                 campus
                 )
             if signed_up:
                 return signed_up
 
-        # # --------------------
-        # # Temporary return value until database is implemented
-        # # --------------------
-        # if (username and password and email and
-        #         first_name and last_name and campus):
-        #     print(f"Signed up user {username}: {email}")
-        #     return True
-        # # --------------------
-        # # End of temporary return value
-        # # --------------------
         return False
 
     # --------------------

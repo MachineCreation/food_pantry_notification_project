@@ -110,7 +110,7 @@ class SignUp(FrameBase):
                 "Your account has been created. Please sign in."
             )
             self.clear_fields()
-            self.send_to_route("sign_in")
+            # self.send_to_route("sign_in")
 
     # --------------------
     def show_password_mismatch(self, mismatch: bool) -> None:

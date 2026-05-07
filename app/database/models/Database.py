@@ -152,7 +152,6 @@ class Database:
         '''
 
         try:
-            print('checking for user')
             result = self.execute_query(
                 query,
                 (user_id,),
@@ -200,10 +199,10 @@ class Database:
         ]
 
         if not all(required_fields):
+            print("Not all fields provided")
             return False
 
         try:
-            print('checking for user')
             existing_user = self.execute_query(
                 '''
                 SELECT username, email_address
@@ -214,13 +213,11 @@ class Database:
                 fetch_all=False
             )
 
-            print(existing_user)
 
             if existing_user:
                 print(f'{username} already exists')
                 return False
 
-            print('user not found, continuing signup')
 
             hashed_password = bcrypt.hashpw(
                 password.encode("utf-8"),
@@ -250,7 +247,6 @@ class Database:
                 ),
                 fetch_all=False
             )
-            print(f'result of insert: {did_create}')
             return True
 
         except pyodbc.Error as e:

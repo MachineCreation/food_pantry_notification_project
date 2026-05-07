@@ -1,6 +1,6 @@
 # Food Pantry Notification Project
 
-Desktop prototype for a food pantry notification system built with Python and Tkinter.
+Desktop application for a food pantry notification system built with Python and Tkinter. Enables volunteers and administrators to manage user accounts, send targeted notifications, and manage inventory for food pantry operations.
 
 ## Contributors
 
@@ -32,7 +32,7 @@ The project is still in progress. Some screens and routes exist only as placehol
 
 ## Current State
 
-Implemented in the current code:
+**Fully Implemented:**
 
 - `main.py` starts the desktop app and initializes the GUI
 - `app/gui/GUI.py` creates the root window and app context
@@ -40,13 +40,14 @@ Implemented in the current code:
 - sign-in, sign-up, and sign-in/sign-up choice screens are present
 - `app/gui/dashboard/models/DashBoard.py` provides the current dashboard frame
 - `app/logic/models/User.py` contains authentication and sign-up helpers
+- User input validation for authentication flows
 
-Partially implemented or still incomplete:
+**In Progress or Incomplete:**
 
-- database bootstrap in `app/database/setup/create_database.py`
-- fully wired persistence for account creation and login
-- dashboard destinations for notification, template, and user-management flows
-- automated tests and CI checks
+- Complete database bootstrap and persistence layer
+- Full account creation and login integration with database
+- Dashboard destinations for notification, template, and user-management flows
+- Comprehensive CI/CD pipeline setup
 
 ## Available Screens
 
@@ -59,14 +60,31 @@ The current route table includes these screen names:
 
 The dashboard UI also references future routes for notification and user-management features, but those routes are not yet registered in the route table.
 
+## Testing
+
+Basic test suite includes:
+
+- `tests/test_database.py` - database operations and schema validation
+- `tests/test_validation.py` - user input validation logic
+- `tests/test_run.py` - application startup and basic flow tests
+
+To run tests:
+
+```powershell
+python -m pytest tests/
+```
+
+Note: Test coverage is limited. Additional tests needed for authentication flows, database persistence, and GUI interactions.
+
 ## Requirements
 
 - Python 3.14
 - Tkinter support in the Python installation
-- Windows PowerShell if you want to use the commands below as written
-- ODBC driver 17+
+- Windows PowerShell (for the quick start commands below)
 
 ## Quick Start
+
+PowerShell:
 
 ```powershell
 winget install Microsoft.msodbcsql.18
@@ -75,6 +93,22 @@ python -m venv venv
 pip install -r requirements.txt
 python main.py
 ```
+
+## Testing
+
+Basic test suite includes:
+
+- `tests/test_database.py` - database operations and schema validation
+- `tests/test_validation.py` - user input validation logic
+- `tests/test_run.py` - application startup and basic flow tests
+
+To run tests:
+
+```powershell
+python -m pytest tests/
+```
+
+Note: Test coverage is limited. Additional tests needed for authentication flows, database persistence, and GUI interactions.
 
 ## Configuration
 
@@ -88,13 +122,6 @@ DB_NAME=<database name>
 DB_USERNAME=<database username>
 DB_PASSWORD=<database password>
 ```
-
-Current defaults in `env.py`:
-
-- `DATABASE_URL=app/Database/database.db`
-- `ADMIN_USERNAME=admin`
-- `ADMIN_EMAIL=admin@example.com`
-- `ADMIN_PASSWORD=admin123`
 
 ## Project Layout
 
