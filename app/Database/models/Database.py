@@ -19,14 +19,14 @@ class Database:
         """
         connection_string = (
             "DRIVER={ODBC Driver 17 for SQL Server};"
-            f"SERVER={self.host},1433;"
+            f"SERVER={self.host};"
             f"DATABASE={self.database};"
             f"UID={self.user};"
             f"PWD={self.password};"
             "Encrypt=yes;"
             "TrustServerCertificate=yes;"
         )
-        self._connection = pyodbc.connect(connection_string, timeout=10)
+        self._connection = pyodbc.connect(connection_string)
         self._cursor = self._connection.cursor()
         print("Successfully connected to PCC Remote Database!")
 
