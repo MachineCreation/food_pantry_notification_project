@@ -3,8 +3,8 @@
 # filename: app/gui/utilities/routes.py
 # Author: Joseph Egan
 # 2026-04-22
-# Sources: 
-# Contributors: 
+# Sources:
+# Contributors: Justin Crump
 # -------------------------------------------------------------------------------
 # Description: route handler
 

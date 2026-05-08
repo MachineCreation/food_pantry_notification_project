@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.14
 # -------------------------------------------------------------------------------
-# filename:NotificationLog.py
+# filename: app/gui/notificationlog/NotificationLog.py
 # Author: Justin Crump
 # 2026-04-29
 # Sources:
@@ -18,7 +18,7 @@ from tkcalendar import DateEntry
 from tkinter import messagebox
 from datetime import date, datetime, time
 from typing import Any
-from tkinter.ttk import Combobox
+
 
 class NotificationLog:
     """
@@ -60,15 +60,20 @@ class NotificationLog:
         top_level.rowconfigure(4, weight=1)
 
         # Header
-        header_label = ttk.Label(top_level, text="Notification Logs", font=("Arial", 20, "bold"))
+        header_label = ttk.Label(top_level,
+                                 text="Notification Logs",
+                                 font=("Arial", 20, "bold")
+                                 )
         header_label.grid(column=0, row=0, pady=(0, 10), sticky="n")
 
         # Instructions
-        instruction_text = ("Using the date selectors below, select a date range to filter the "
-                            "notification logs. Click Search to apply the filters, or Clear "
-                            "to reset all filters.")
+        instruction_text = (
+            "Using the date selectors below, select a date range to filter the"
+            " notification logs. Click Search to apply the filters, or Clear "
+            "to reset all filters."
+        )
 
-        header_memo = tk.Message(top_level, text = instruction_text, width=600)
+        header_memo = tk.Message(top_level, text=instruction_text, width=600)
         header_memo.grid(column=0, row=1, sticky="n")
 
         # Input section (date filters + buttons)
@@ -84,7 +89,7 @@ class NotificationLog:
 
         # Start date
         startdate_label = ttk.Label(input_frame, text="Start Date: ")
-        startdate_label.grid(column=0, row=0, sticky="e", padx=(0,5))
+        startdate_label.grid(column=0, row=0, sticky="e", padx=(0, 5))
         self.startdate_entry = DateEntry(input_frame, width=10, date_pattern="MM-dd-yyyy")
         self.startdate_entry.grid(column=1, row=0, sticky="w", padx=(0,15))
 

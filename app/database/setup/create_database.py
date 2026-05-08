@@ -15,10 +15,11 @@ from app.database.models.Database import Database
 # python imports
 import bcrypt
 
+
 def main():
     database: Database = Database()
     make_users(database)
-    
+
 
 def make_users(database):
     '''
@@ -67,6 +68,7 @@ def make_users(database):
 
     for user in users:
         database.sign_up_user(*user)
+
 
 def replace_passwords(database):
     '''

@@ -213,11 +213,9 @@ class Database:
                 fetch_all=False
             )
 
-
             if existing_user:
                 print(f'{username} already exists')
                 return False
-
 
             hashed_password = bcrypt.hashpw(
                 password.encode("utf-8"),
@@ -247,16 +245,17 @@ class Database:
                 ),
                 fetch_all=False
             )
-            return True
+            if did_create:
+                return True
 
         except pyodbc.Error as e:
             print(f'an error occured: {e}')
             return False
-        
+
     # --------------------
     def get_notes(self) -> Tuple[bool, Tuple[str]]:
         '''
-        
+
         '''
         self.ensure_connection()
 

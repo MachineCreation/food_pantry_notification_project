@@ -15,6 +15,7 @@ from app.database.models.Database import Database
 from datetime import datetime
 from typing import List
 
+
 class LogRecord:
     """
     Represents a notification log entry retrieved from the database.
@@ -76,10 +77,10 @@ class LogRecord:
 
         db = Database()
         query = """
-            SELECT DISTINCT USERS.first_name + ' ' + USERS.last_name AS full_name
-            FROM    USERS
-            JOIN    ROLES ON USERS.role_id = ROLES.role_id
-            WHERE   ROLES.role NOT LIKE '%subscriber%'
+        SELECT DISTINCT USERS.first_name + ' ' + USERS.last_name AS full_name
+        FROM    USERS
+        JOIN    ROLES ON USERS.role_id = ROLES.role_id
+        WHERE   ROLES.role NOT LIKE '%subscriber%'
             """
 
         results = db.execute_query(query, fetch_all=True)
@@ -92,7 +93,11 @@ class LogRecord:
         return users
 
     @staticmethod
-    def search(start_date: datetime, end_date: datetime, sender: str) -> List["LogRecord"]:
+    def search(
+        start_date: datetime,
+        end_date: datetime,
+        sender: str
+    ) -> List["LogRecord"]:
         """
         Search for notification log records with a given date range
 
@@ -107,10 +112,11 @@ class LogRecord:
         Raises:
             RuntimeError: If a database error occurs
         """
-        
+
         db = Database()
 
-        # Parameterized query to retrieve notification details from the database
+        # Parameterized query to retrieve notification
+        # details from the database
         query = """
         SELECT  NOTIFICATIONS.notification_id,
                 NOTIFICATIONS.date_time,

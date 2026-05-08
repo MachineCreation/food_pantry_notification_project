@@ -4,7 +4,7 @@
 # Author: Joseph Egan
 # 2026-04-17
 # Sources: None
-# Contributors: 
+# Contributors: Justin Crump
 # -------------------------------------------------------------------------------
 # Description: Main root app file for initiating instance
 

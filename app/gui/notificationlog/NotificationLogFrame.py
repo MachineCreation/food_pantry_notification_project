@@ -1,5 +1,20 @@
+#!/usr/bin/env python3.14
+# -------------------------------------------------------------------------------
+# filename: app/gui/notificationlog/NotificationLogFrame.py
+# Author: Justin Crump
+# 2026-04-29
+# Sources:
+# Contributors: Joseph Egan
+# -------------------------------------------------------------------------------
+# Description:
+
+# Local imports
+
+# python imports
+
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.gui.notificationlog.NotificationLog import NotificationLog
+
 
 class NotificationLogFrame(FrameBase):
     """
@@ -15,7 +30,7 @@ class NotificationLogFrame(FrameBase):
             "notification_log"
         )
 
-        #Inject existing Tkinter UI into frame system
+        # Inject existing Tkinter UI into frame system
         self._ui = NotificationLog(self._frame, app_context)
 
     def get_frame(self):
