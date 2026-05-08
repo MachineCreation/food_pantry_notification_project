@@ -102,7 +102,7 @@
               <property name="anchor">center</property>
             </containerlayout>
             <child>
-              <object class="ttk.Button" id="signInButton" named="True">
+              <object class="ttk.Button" id="send_button" named="True">
                 <property name="class_">Button</property>
                 <property name="text" translatable="yes">Send</property>
                 <layout manager="grid">
@@ -113,7 +113,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="signUpButton" named="True">
+              <object class="ttk.Button" id="image_button" named="True">
                 <property name="class_">Button</property>
                 <property name="text" translatable="yes">Image</property>
                 <layout manager="grid">
@@ -124,7 +124,7 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="clearButton" named="True">
+              <object class="ttk.Button" id="clear_button" named="True">
                 <property name="class_">Button</property>
                 <property name="text" translatable="yes">Clear</property>
                 <layout manager="grid">
@@ -135,9 +135,9 @@
               </object>
             </child>
             <child>
-              <object class="ttk.Button" id="button1" named="True">
+              <object class="ttk.Button" id="back_button" named="True">
                 <property name="class_">Button</property>
-                <property name="text" translatable="yes">Exit</property>
+                <property name="text" translatable="yes">Back</property>
                 <layout manager="grid">
                   <property name="column">4</property>
                   <property name="padx">5</property>
@@ -186,6 +186,7 @@
             </child>
             <child>
               <object class="ttk.Combobox" id="combobox3">
+                <property name="state">readonly</property>
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">1</property>
@@ -219,6 +220,7 @@
             </child>
             <child>
               <object class="ttk.Combobox" id="combobox4">
+                <property name="state">readonly</property>
                 <layout manager="grid">
                   <property name="column">0</property>
                   <property name="row">3</property>

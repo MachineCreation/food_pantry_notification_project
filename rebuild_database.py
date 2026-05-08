@@ -1,4 +1,6 @@
-from app.Database.setup.create_database import main
+from app.database.setup.drop_tables import drop_table
+from app.database.setup.create_database import create_table
 
 if __name__ == "__main__":
-    main()
+    drop_table()
+    create_table()

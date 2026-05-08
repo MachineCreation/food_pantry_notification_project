@@ -2,8 +2,7 @@
 .env
 venv
 querys.sql
-create_database.py
-rebuild_database.py
+user_info.py
 
 .idea/
 __pycache__/

@@ -12,7 +12,7 @@
 import env
 
 # Python imports
-import pyodbc
+import pymssql
 import bcrypt
 from typing import Tuple
 
@@ -23,24 +23,15 @@ class Database:
     authentication, and user signup.
     '''
 
-    database: str | None = env.DATABASE_URL
-    db_name: str = env.DB_NAME
-    db_username: str = env.DB_USERNAME
-    db_password: str = env.DB_PASSWORD
+    __database: str = env.DATABASE_URL
+    __db_name: str = env.DB_NAME
+    __db_username: str = env.DB_USERNAME
+    __db_password: str = env.DB_PASSWORD
 
     def __init__(self):
-        self.conn_str = (
-            "DRIVER={ODBC Driver 18 for SQL Server};"
-            f"SERVER={self.database};"
-            f"DATABASE={self.db_name};"
-            f"UID={self.db_username};"
-            f"PWD={self.db_password};"
-            "Encrypt=yes;"
-            "TrustServerCertificate=yes;"
-        )
 
-        self.__connection: pyodbc.Connection | None = None
-        self.__cursor: pyodbc.Cursor | None = None
+        self.__connection: pymssql.Connection | None = None
+        self.__cursor: pymssql.Cursor | None = None
 
         self.connect()
 
@@ -51,11 +42,17 @@ class Database:
         Establish database connection and cursor.
         '''
         try:
-            self.__connection = pyodbc.connect(self.conn_str)
+            self.__connection = pymssql.connect(
+                server=self.__database,
+                user=self.__db_username,
+                password=self.__db_password,
+                database=self.__db_name,
+                timeout=30
+            )
             self.__cursor = self.__connection.cursor()
 
-        except pyodbc.Error as error:
-            raise pyodbc.Error(f"Failed to connect to database: {error}")
+        except pymssql.Error as error:
+            raise ConnectionError(f"Failed to connect to database: {error}")
 
     def disconnect(self) -> None:
         '''
@@ -70,8 +67,8 @@ class Database:
                 self.__connection.close()
                 self.__connection = None
 
-        except pyodbc.Error as error:
-            raise pyodbc.Error(f"Failed to disconnect from database: {error}")
+        except pymssql.Error as error:
+            raise pymssql.Error(f"Failed to disconnect from database: {error}")
 
     def ensure_connection(self) -> None:
         '''
@@ -83,11 +80,11 @@ class Database:
     # -------------------- query methods --------------------
 
     def execute_query(
-            self,
-            query: str,
-            parameters: tuple = (),
-            fetch_all: bool = True
-            ) -> list[tuple] | tuple | None:
+        self,
+        query: str,
+        parameters: tuple = (),
+        fetch_all: bool = True
+    ) -> list[tuple] | tuple | None:
         '''
         Execute a SQL query.
 
@@ -98,6 +95,12 @@ class Database:
         '''
         self.ensure_connection()
 
+        if self.__cursor is None:
+            raise ConnectionError("Database cursor is not available.")
+
+        if self.__connection is None:
+            raise ConnectionError("Database connection is not available.")
+
         try:
             self.__cursor.execute(query, parameters)
 
@@ -106,25 +109,15 @@ class Database:
             if query_starts_with.startswith("select"):
                 if fetch_all:
                     return self.__cursor.fetchall()
+
                 return self.__cursor.fetchone()
 
             self.__connection.commit()
             return None
 
-        except pyodbc.Error as error:
-            if self.__connection:
-                self.__connection.rollback()
-            raise pyodbc.Error(f"Failed to execute query: {error}")
-
-    def drop_table(self, table_name: str) -> None:
-        '''
-        Drop a table if it exists.
-        '''
-        if not table_name.isidentifier():
-            raise ValueError("Invalid table name.")
-
-        query = f"DROP TABLE IF EXISTS {table_name};"
-        self.execute_query(query, fetch_all=False)
+        except pymssql.Error as error:
+            self.__connection.rollback()
+            raise pymssql.Error(f"Failed to execute query: {error}") from error
 
     # -------------------- user methods --------------------
 
@@ -148,7 +141,7 @@ class Database:
         query = f'''
             SELECT password_hash, role_id, username
             FROM USERS
-            WHERE {column_name} = ?;
+            WHERE {column_name} = %s;
         '''
 
         try:
@@ -170,7 +163,7 @@ class Database:
 
             return authenticated, user_role, username
 
-        except pyodbc.Error as e:
+        except pymssql.Error as e:
             print(f'SQL error: {e}')
             return False, None, None
 
@@ -207,7 +200,7 @@ class Database:
                 '''
                 SELECT username, email_address
                 FROM USERS
-                WHERE username = ? OR email_address = ?;
+                WHERE username = %s OR email_address = %s;
                 ''',
                 (username, email),
                 fetch_all=False
@@ -231,9 +224,11 @@ class Database:
                     username,
                     email_address,
                     password_hash,
+                    allergies,
+                    campus,
                     role_id
                 )
-                VALUES (?, ?, ?, ?, ?, ?);
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
                 ''',
                 (
                     first_name,
@@ -241,6 +236,8 @@ class Database:
                     username,
                     email,
                     hashed_password,
+                    allergies,
+                    campus,
                     role
                 ),
                 fetch_all=False
@@ -248,7 +245,7 @@ class Database:
             if did_create:
                 return True
 
-        except pyodbc.Error as e:
+        except pymssql.Error as e:
             print(f'an error occured: {e}')
             return False
 
@@ -273,7 +270,7 @@ class Database:
             )
             return True, result
 
-        except pyodbc.Error as e:
+        except pymssql.Error as e:
             print(f'SQL Error: {e}')
             return False, ('none', 'none')
 
