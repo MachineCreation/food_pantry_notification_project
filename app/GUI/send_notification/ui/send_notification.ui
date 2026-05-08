@@ -5,7 +5,7 @@
     <customwidgets />
     <resources />
   </project>
-  <object class="ttk.Frame" id="SignInUpChoice" named="True">
+  <object class="ttk.Frame" id="send_notification" named="True">
     <property name="height">200</property>
     <property name="width">200</property>
     <layout manager="pack" />
@@ -103,7 +103,6 @@
             </containerlayout>
             <child>
               <object class="ttk.Button" id="send_button" named="True">
-                <property name="class_">Button</property>
                 <property name="text" translatable="yes">Send</property>
                 <layout manager="grid">
                   <property name="column">0</property>
@@ -114,7 +113,6 @@
             </child>
             <child>
               <object class="ttk.Button" id="image_button" named="True">
-                <property name="class_">Button</property>
                 <property name="text" translatable="yes">Image</property>
                 <layout manager="grid">
                   <property name="column">1</property>
@@ -125,7 +123,6 @@
             </child>
             <child>
               <object class="ttk.Button" id="clear_button" named="True">
-                <property name="class_">Button</property>
                 <property name="text" translatable="yes">Clear</property>
                 <layout manager="grid">
                   <property name="column">3</property>
@@ -136,7 +133,6 @@
             </child>
             <child>
               <object class="ttk.Button" id="back_button" named="True">
-                <property name="class_">Button</property>
                 <property name="text" translatable="yes">Back</property>
                 <layout manager="grid">
                   <property name="column">4</property>
@@ -198,7 +194,6 @@
                 <property name="class_">CheckBox</property>
                 <property name="compound">none</property>
                 <property name="cursor">arrow</property>
-                <property name="font">{ariel} 16 {}</property>
                 <property name="offvalue">False</property>
                 <property name="onvalue">True</property>
                 <property name="text" translatable="yes">Allergies</property>

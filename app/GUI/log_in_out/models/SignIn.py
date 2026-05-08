@@ -188,7 +188,7 @@ class SignIn(FrameBase):
                 },
                 "sign_up_button": {
                     "commands": {
-                        self. send_to_route: ["sign_up"]
+                        self.send_to_route: ["sign_up"]
                     },
                     "styles": []
                 },

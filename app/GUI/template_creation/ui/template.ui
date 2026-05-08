@@ -222,7 +222,7 @@
             <layout manager="grid">
               <property name="column">0</property>
               <property name="row">0</property>
-              <property name="sticky">w</property>
+              <property name="sticky">nw</property>
             </layout>
           </object>
         </child>

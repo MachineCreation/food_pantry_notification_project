@@ -23,6 +23,8 @@ def send_to_route(route: str, gui: Callable) -> None:
     from app.gui.log_in_out.models.SignUp import SignUp
     from app.gui.log_in_out.models.SignInUpChoice import SignInUpChoice
     from app.gui.dashboard.models.DashBoard import DashBoard
+    from app.gui.send_notification.models.SendNotification import \
+        SendNotification
     from app.gui.notification_log.NotificationLog import NotificationLog
     from app.gui.template_creation.models.template_view import TemplateView
 
@@ -37,7 +39,7 @@ def send_to_route(route: str, gui: Callable) -> None:
         "sign_in_up_choice": SignInUpChoice,
         "dashboard": DashBoard,
         "notification_log": NotificationLog,
-        # "send_notification": ,
+        "send_notification": SendNotification,
         "create_template": TemplateView,
         # "manage_users": ,
         }
