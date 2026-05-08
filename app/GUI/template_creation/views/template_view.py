@@ -104,4 +104,3 @@ class TemplateView:
         widget = self.builder.get_object("message_text")
         widget.delete("1.0", "end")
         widget.insert("1.0", value)
-
