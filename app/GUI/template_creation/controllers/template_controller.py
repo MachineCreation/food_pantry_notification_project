@@ -188,3 +188,4 @@ class TemplateController:
 
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to load template: {e}")
+
