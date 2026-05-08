@@ -41,7 +41,7 @@ class SignUp(FrameBase):
         super().__init__(
             gui,
             app_context,
-            "app/gui/logInOut/ui/sign_up.ui",
+            "app/gui/log_in_out/ui/sign_up.ui",
             "SignUp")
         # config variables
         self.__allergies_bool = tkinter.BooleanVar()

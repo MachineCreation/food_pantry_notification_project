@@ -23,7 +23,7 @@ class SignInUpChoice(FrameBase):
         super().__init__(
             gui,
             app_context,
-            "app/gui/logInOut/ui/signin_up_choice.ui",
+            "app/gui/log_in_out/ui/signin_up_choice.ui",
             "SignInUpChoice"
         )
 

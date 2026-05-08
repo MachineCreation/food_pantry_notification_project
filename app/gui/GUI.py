@@ -86,7 +86,7 @@ class GUI:
         self.clear_frame()
         screen = route_class(self, self.__app_context)
         self.__current_frame = screen.get_frame()
-        self.__current_frame.pack(fill="both", expand=True)
+        self.__current_frame.grid(row=0, column=0, sticky="nsew")
 
 # --------------------------------- run ---------------------------------
     def run_gui(self):

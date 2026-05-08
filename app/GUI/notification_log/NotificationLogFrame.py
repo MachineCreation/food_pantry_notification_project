@@ -13,7 +13,7 @@
 # python imports
 
 from app.gui.utilities.models.FrameBase import FrameBase
-from app.gui.notificationlog.NotificationLog import NotificationLog
+from app.gui.notification_log.NotificationLog import NotificationLog
 
 
 class NotificationLogFrame(FrameBase):

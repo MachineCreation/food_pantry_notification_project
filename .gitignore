@@ -1,9 +1,11 @@
 # .gitignore
 .env
 venv
-.idea
 querys.sql
+create_database.py
+rebuild_database.py
 
+.idea/
 __pycache__/
 */__pycache__/
 
