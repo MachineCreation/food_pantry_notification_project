@@ -67,3 +67,40 @@ class TemplateView:
         Helper method to get the text from the entry box.
         """
         return self.builder.get_object("message_text").get("1.0", "end").strip()
+
+    def get_selected_existing_template(self):
+        """
+        returns the currently selected template name from the Existing Templates dropdown
+        """
+        return self.builder.get_object("existing_templates_combobox").get()
+
+    def set_template_name(self, value):
+        """
+        fills the Template Name field with the given value
+        """
+        widget = self.builder.get_object("entry1")
+        widget.delete(0, "end")
+        widget.insert(0, value)
+
+    def set_subject(self, value):
+        """
+        fills the Subject field with the given value
+        """
+        widget = self.builder.get_object("subject_entry")
+        widget.delete(0, "end")
+        widget.insert(0, value)
+
+    def set_tag_value(self, value):
+        """
+        sets the Tags combobox to the given value
+        """
+        widget = self.builder.get_object("tags_combobox")
+        widget.set(value)
+
+    def set_message(self, value):
+        """
+        fills the Message text box with the given value
+        """
+        widget = self.builder.get_object("message_text")
+        widget.delete("1.0", "end")
+        widget.insert("1.0", value)

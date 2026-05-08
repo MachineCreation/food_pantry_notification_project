@@ -75,12 +75,58 @@ class TemplateController:
         try:
             creator_id = 1
 
+            existing_template = self.db.execute_query(
+                """
+                SELECT template_id
+                FROM TEMPLATE
+                WHERE template_name = ?;
+                """,
+                (template_name,),
+                fetch_all=False
+            )
+
+            if existing_template:
+                template_id = existing_template[0]
+
+                self.db.execute_query(
+                    """
+                    UPDATE TEMPLATE
+                    SET subject = ?, tags = ?
+                    WHERE template_id = ?;
+                    """,
+                    (subject, selected_tag, template_id),
+                    fetch_all=False
+                )
+            else:
+                self.db.execute_query(
+                    """
+                    INSERT INTO TEMPLATE (template_name, creator_id, subject, tags)
+                    VALUES (?, ?, ?, ?);
+                    """,
+                    (template_name, creator_id, subject, selected_tag),
+                    fetch_all=False
+                )
+
+                new_row = self.db.execute_query(
+                    """
+                    SELECT template_id
+                    FROM TEMPLATE
+                    WHERE template_name = ?;
+                    """,
+                    (template_name,),
+                    fetch_all=False
+                )
+                template_id = new_row[0]
+
+            image_id = 1
+            num_recip = 0
             self.db.execute_query(
                 """
-                INSERT INTO TEMPLATE (template_name, creator_id, subject, tags)
-                VALUES (?, ?, ?, ?);
+                INSERT INTO NOTIFICATIONS
+                    (sender_id, template_id, subject, body_text, num_recip, image_id, date_time)
+                VALUES (?, ?, ?, ?, ?, ?, GETDATE());
                 """,
-                (template_name, creator_id, subject, selected_tag),
+                (creator_id, template_id, subject, message, num_recip, image_id),
                 fetch_all=False
             )
 
@@ -96,3 +142,49 @@ class TemplateController:
         """
         print("Closing application...")
         self.parent.quit()
+
+    def on_load_template(self, event=None):
+        """
+        Loads the selected template's information into the form fields
+        including the most recent body_text from NOTIFICATIONS
+        """
+        selected_name = self.view.get_selected_existing_template()
+
+        if not selected_name.strip():
+            messagebox.showerror("Load Error", "Please select a template first.")
+            return
+
+        try:
+            row = self.db.execute_query(
+                """
+                SELECT TOP 1
+                    t.template_name,
+                    t.subject,
+                    t.tags,
+                    n.body_text
+                FROM TEMPLATE t
+                LEFT JOIN NOTIFICATIONS n ON t.template_id = n.template_id
+                WHERE t.template_name = ?
+                ORDER BY n.date_time DESC;
+                """,
+                (selected_name,),
+                fetch_all=False
+            )
+
+            if not row:
+                messagebox.showerror("Load Error", "Template not found.")
+                return
+
+            template_name, subject, tags, body_text = row
+
+            self.view.set_template_name(template_name)
+            self.view.set_subject(subject)
+            self.view.set_tag_value(tags)
+
+            if body_text:
+                self.view.set_message(body_text)
+            else:
+                self.view.set_message("")
+
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Failed to load template: {e}")
