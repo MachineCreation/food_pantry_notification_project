@@ -153,6 +153,7 @@
             <child>
               <object class="ttk.Combobox" id="existing_templates_combobox" named="True">
                 <property name="width">26</property>
+                <bind sequence="&lt;&lt;ComboboxSelected&gt;&gt;" handler="on_load_template" add="" />
                 <layout manager="grid">
                   <property name="column">10</property>
                   <property name="ipady">5</property>
