@@ -1,25 +1,24 @@
 # -------------------------------------------------------------------------------
-# filename: template_controller.py
+# filename: app/gui/template_creation/models/template_controller.py
 # Author: Lloyd Truong
 # 2026-04-24
 # Sources: None
-# Contributors:
+# Contributors: Joseph Egan
 # -------------------------------------------------------------------------------
 
 from tkinter import messagebox
-from app.GUI.template_creation.views.template_view import TemplateView
 
 
 class TemplateController:
     def __init__(self, parent, app_context):
         """
         Initializes the TemplateController
-        :param parent: the parent tkinter window or frame
+        :param parent: the parent has been changed to the main GUI instance
         :param app_context: shared application data
         """
         self.parent = parent
         self.app_context = app_context
-        self.view = TemplateView(parent, self)
+        self.view = parent
         self.db = self.app_context.get("database")
 
         default_tags = [
@@ -37,7 +36,8 @@ class TemplateController:
 
     def load_existing_templates(self):
         """
-        reads existing template names from the database and loads them into the Existing Templates dropdown in the view
+        reads existing template names from the database and loads them
+        into the Existing Templates dropdown in the view
         """
         try:
             rows = self.db.execute_query(
@@ -60,10 +60,12 @@ class TemplateController:
         message = self.view.get_message()
 
         if not template_name.strip():
-            messagebox.showerror("Validation Error", "Template Name cannot be empty.")
+            messagebox.showerror("Validation Error",
+                                 "Template Name cannot be empty.")
             return
         if not subject.strip():
-            messagebox.showerror("Validation Error", "Subject cannot be empty.")
+            messagebox.showerror("Validation Error",
+                                 "Subject cannot be empty.")
             return
         if not selected_tag.strip():
             messagebox.showerror("Validation Error", "Tag cannot be empty.")
@@ -79,7 +81,7 @@ class TemplateController:
                 """
                 SELECT template_id
                 FROM TEMPLATE
-                WHERE template_name = ?;
+                WHERE template_name = %s;
                 """,
                 (template_name,),
                 fetch_all=False
@@ -91,8 +93,8 @@ class TemplateController:
                 self.db.execute_query(
                     """
                     UPDATE TEMPLATE
-                    SET subject = ?, tags = ?
-                    WHERE template_id = ?;
+                    SET subject = %s, tags = %s
+                    WHERE template_id = %s;
                     """,
                     (subject, selected_tag, template_id),
                     fetch_all=False
@@ -101,7 +103,7 @@ class TemplateController:
                 self.db.execute_query(
                     """
                     INSERT INTO TEMPLATE (template_name, creator_id, subject, tags)
-                    VALUES (?, ?, ?, ?);
+                    VALUES (%s, %s, %s, %s);
                     """,
                     (template_name, creator_id, subject, selected_tag),
                     fetch_all=False
@@ -111,7 +113,7 @@ class TemplateController:
                     """
                     SELECT template_id
                     FROM TEMPLATE
-                    WHERE template_name = ?;
+                    WHERE template_name = %s;
                     """,
                     (template_name,),
                     fetch_all=False
@@ -124,7 +126,7 @@ class TemplateController:
                 """
                 INSERT INTO NOTIFICATIONS
                     (sender_id, template_id, subject, body_text, num_recip, image_id, date_time)
-                VALUES (?, ?, ?, ?, ?, ?, GETDATE());
+                VALUES (%s, %s, %s, %s, %s, %s, GETDATE());
                 """,
                 (creator_id, template_id, subject, message, num_recip, image_id),
                 fetch_all=False
@@ -142,6 +144,15 @@ class TemplateController:
         """
         print("Closing application...")
         self.parent.quit()
+
+    # change button from "cancel" to "clear" use it to clear the form fields
+    # instead of closing the app
+    def on_clear(self, event=None):
+        pass
+
+    # add a "back" button and method to navigate back to the "dashboard"
+    def on_back(self, event=None):
+        self.parent.send_to_route("dashboard")
 
     def on_load_template(self, event=None):
         """
@@ -164,7 +175,7 @@ class TemplateController:
                     n.body_text
                 FROM TEMPLATE t
                 LEFT JOIN NOTIFICATIONS n ON t.template_id = n.template_id
-                WHERE t.template_name = ?
+                WHERE t.template_name = %s
                 ORDER BY n.date_time DESC;
                 """,
                 (selected_name,),

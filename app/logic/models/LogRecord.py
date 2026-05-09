@@ -77,13 +77,13 @@ class LogRecord:
 
         db = Database()
         query = """
-        SELECT DISTINCT USERS.first_name + ' ' + USERS.last_name AS full_name
-        FROM    USERS
-        JOIN    ROLES ON USERS.role_id = ROLES.role_id
-        WHERE   ROLES.role NOT LIKE '%subscriber%'
-            """
+            SELECT DISTINCT USERS.first_name + ' ' + USERS.last_name AS full_name
+            FROM USERS
+            JOIN ROLES ON USERS.role_id = ROLES.role_id
+            WHERE ROLES.role NOT LIKE %s
+        """
 
-        results = db.execute_query(query, fetch_all=True)
+        results = db.execute_query(query, parameters=('%subscriber%',), fetch_all=True)
 
         users = ["All"]
 
@@ -126,8 +126,8 @@ class LogRecord:
                 NOTIFICATIONS.num_recip
         FROM    NOTIFICATIONS
         LEFT OUTER JOIN USERS ON NOTIFICATIONS.sender_id = USERS.user_id
-        WHERE   NOTIFICATIONS.date_time >= ?
-        AND     NOTIFICATIONS.date_time <= ?
+        WHERE   NOTIFICATIONS.date_time >= %s
+        AND     NOTIFICATIONS.date_time <= %s
         """
 
         # Base parameters
@@ -135,7 +135,7 @@ class LogRecord:
 
         # Add sender filter only if needed
         if sender != "All":
-            query += " AND (USERS.first_name + ' ' + USERS.last_name) LIKE ?"
+            query += " AND (USERS.first_name + ' ' + USERS.last_name) LIKE %s"
             params.append(sender)
         else:
             query += ";"

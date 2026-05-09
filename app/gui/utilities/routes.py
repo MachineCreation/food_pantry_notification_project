@@ -47,5 +47,5 @@ def send_to_route(route: str, gui: Callable) -> None:
     try:
         route_class = routes[route]
         gui.show_route(route_class)
-    except KeyError, ValueError:
+    except KeyError:
         print(f"Route '{route}' not found.")

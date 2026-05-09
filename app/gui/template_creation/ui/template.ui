@@ -227,7 +227,7 @@
           </object>
         </child>
         <child>
-          <object class="tk.Text" id="text1" named="True">
+          <object class="tk.Text" id="message_text" named="True">
             <property name="height">5</property>
             <property name="width">30</property>
             <layout manager="grid">
