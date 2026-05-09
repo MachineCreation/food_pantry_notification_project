@@ -1,8 +1,8 @@
 #!/usr/bin/env python3.14
 # -------------------------------------------------------------------------------
-# filename: app/gui/notificationlog/NotificationLog.py
+# filename:NotificationLog.py
 # Author: Justin Crump
-# 2026-04-29
+# 2026-05-06
 # Sources:
 # Contributors:
 # -------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ from tkcalendar import DateEntry
 from tkinter import messagebox
 from datetime import date, datetime, time
 from typing import Any
-
+from tkinter.ttk import Combobox
 
 class NotificationLog:
     """
@@ -26,6 +26,7 @@ class NotificationLog:
 
     Features:
     - Date range filtering
+    - Message sender filtering
     - Display all records
     - Row selection to preview message contents
     - Navigation back to dashboard
@@ -60,20 +61,15 @@ class NotificationLog:
         top_level.rowconfigure(4, weight=1)
 
         # Header
-        header_label = ttk.Label(top_level,
-                                 text="Notification Logs",
-                                 font=("Arial", 20, "bold")
-                                 )
+        header_label = ttk.Label(top_level, text="Notification Logs", font=("Arial", 20, "bold"))
         header_label.grid(column=0, row=0, pady=(0, 10), sticky="n")
 
         # Instructions
-        instruction_text = (
-            "Using the date selectors below, select a date range to filter the"
-            " notification logs. Click Search to apply the filters, or Clear "
-            "to reset all filters."
-        )
+        instruction_text = ("Using the date selectors below, select a date range to filter the "
+                            "notification logs. Click Search to apply the filters, or Clear "
+                            "to reset all filters.")
 
-        header_memo = tk.Message(top_level, text=instruction_text, width=600)
+        header_memo = tk.Message(top_level, text = instruction_text, width=600)
         header_memo.grid(column=0, row=1, sticky="n")
 
         # Input section (date filters + buttons)
@@ -89,14 +85,14 @@ class NotificationLog:
 
         # Start date
         startdate_label = ttk.Label(input_frame, text="Start Date: ")
-        startdate_label.grid(column=0, row=0, sticky="e", padx=(0, 5))
-        self.startdate_entry = DateEntry(input_frame, width=10, date_pattern="MM-dd-yyyy")
+        startdate_label.grid(column=0, row=0, sticky="e", padx=(0,5))
+        self.startdate_entry = DateEntry(input_frame, width=10, date_pattern="mm-dd-yyyy", state="readonly")
         self.startdate_entry.grid(column=1, row=0, sticky="w", padx=(0,15))
 
         # End date
         enddate_label = ttk.Label(input_frame, text="End Date: ")
         enddate_label.grid(column=2, row=0, sticky="e", padx=(0,5))
-        self.enddate_entry = DateEntry(input_frame, width=10, date_pattern="MM-dd-yyyy")
+        self.enddate_entry = DateEntry(input_frame, width=10, date_pattern="mm-dd-yyyy", state="readonly")
         self.enddate_entry.grid(column=3, row=0, sticky="w")
 
         # Search Button
@@ -117,15 +113,19 @@ class NotificationLog:
         self.sender_variable = tk.StringVar()
 
         # Dropdown widget
+        senders = LogRecord.get_unique_senders()
+
         self.sender_dropdown = ttk.Combobox(
             input_frame,
             textvariable=self.sender_variable,
-            values=LogRecord.get_unique_senders(),
+            values=senders,
             state="readonly",
             width=15
         )
         self.sender_dropdown.grid(column=1, row=1, sticky="w", padx=(0,15))
-        self.sender_dropdown.current(0)
+
+        if senders:
+            self.sender_dropdown.current(0)
 
         # Clear Button
         clear_button = ttk.Button(input_frame, text="Clear", command=self.clear)
@@ -144,6 +144,13 @@ class NotificationLog:
         tree_frame.rowconfigure(0, weight=1)
 
         # Table setup
+        columns = {
+            "date": ("Date/Time", 150),
+            "subject": ("Subject", 150),
+            "message": ("Message", 400),
+            "sender": ("Sender", 100),
+            "recipients": ("Recipients", 75)
+        }
         self.tree = ttk.Treeview(
             tree_frame,
             columns=(
@@ -155,20 +162,13 @@ class NotificationLog:
             ),
             show="headings"
         )
-        self.tree.heading("date", text="Date/Time")
-        self.tree.heading("subject", text="Subject")
-        self.tree.heading("message", text="Message")
-        self.tree.heading("sender", text="Sender")
-        self.tree.heading("recipients", text="Recipients")
+
+        for col, (title, width) in columns.items():
+            self.tree.heading(col, text=title)
+            self.tree.column(col, width=width)
+
         self.tree.grid(column=0, row=0, sticky="nsew")
         self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
-
-        # Column widths
-        self.tree.column("date", width=150, stretch=False)
-        self.tree.column("subject", width=150, stretch=False)
-        self.tree.column("message", width=400, stretch=True)
-        self.tree.column("sender", width=100, stretch=False)
-        self.tree.column("recipients", width=75, stretch=False)
 
         # Vertical Scrollbar
         tree_scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
@@ -200,12 +200,6 @@ class NotificationLog:
         """
         return self.frame
 
-    def run(self) -> None:
-        """
-        Start the tkinter main loop for this window
-        """
-        self.mainwindow.mainloop()
-
     def clear(self) -> None:
         """
         Reset date filters, clear the results table, and clear the message preview area
@@ -214,9 +208,7 @@ class NotificationLog:
         self.startdate_entry.set_date(default)
         self.enddate_entry.set_date(default)
         self.tree.delete(*self.tree.get_children())
-        self.mess_display.config(state="normal")
-        self.mess_display.delete("1.0", tk.END)
-        self.mess_display.config(state="disabled")
+        self.clear_message_display()
         self.sender_dropdown.current(0)
 
     def back(self) -> None:
@@ -262,12 +254,8 @@ class NotificationLog:
             messagebox.showerror("Invalid Date Range", "End date must be after start date")
             return
 
-        for row in self.tree.get_children():
-            self.tree.delete(row)
-        self.mess_display.config(state="normal")
-        self.mess_display.delete("1.0", tk.END)
-        self.mess_display.config(state="disabled")
-
+        self.tree.delete(*self.tree.get_children())
+        self.clear_message_display()
 
         try:
             all_data = LogRecord.search(start, end, sender)
@@ -321,3 +309,11 @@ class NotificationLog:
                     data.get_recipients()
                 )
             )
+
+    def clear_message_display(self) -> None:
+        """
+        Helper function to clear message display
+        """
+        self.mess_display.config(state="normal")
+        self.mess_display.delete("1.0", tk.END)
+        self.mess_display.config(state="disabled")
