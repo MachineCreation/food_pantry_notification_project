@@ -216,7 +216,7 @@ class Database:
             ).decode("utf-8")
 
             print('inserting user')
-            did_create = self.execute_query(
+            self.execute_query(
                 '''
                 INSERT INTO USERS (
                     first_name,
@@ -242,8 +242,8 @@ class Database:
                 ),
                 fetch_all=False
             )
-            if did_create:
-                return True
+
+            return True
 
         except pymssql.Error as e:
             print(f'an error occured: {e}')
