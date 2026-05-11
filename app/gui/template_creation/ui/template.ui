@@ -110,7 +110,6 @@
         </child>
         <child>
           <object class="ttk.Combobox" id="tags_combobox" named="True">
-            <property name="state">readonly</property>
             <layout manager="grid">
               <property name="column">1</property>
               <property name="ipady">5</property>
@@ -133,7 +132,6 @@
         </child>
         <child>
           <object class="ttk.Combobox" id="existing_templates_combobox" named="True">
-            <property name="state">readonly</property>
             <property name="width">26</property>
             <bind sequence="&lt;&lt;ComboboxSelected&gt;&gt;" handler="on_load_template" add="" />
             <layout manager="grid">
