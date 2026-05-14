@@ -45,6 +45,7 @@ class SignIn(FrameBase):
         '''
         valid_uname_or_email, uname_email = self.__validate_username_or_email()
         if not valid_uname_or_email:
+            print("bad pattern matcch")
             return
 
         valid_password = self.__validate_password()
@@ -65,7 +66,7 @@ class SignIn(FrameBase):
         else:
             showwarning(
                 "Authentication Failed",
-                "Invalid username/email or password. Please try again."
+                "Please try again. Or contact your administrator"
             )
             self.clear_entries()
 
@@ -83,16 +84,12 @@ class SignIn(FrameBase):
         except ValueError:
             showwarning(
                 "Error",
-                "An error occurred while validating the username or email."
+                "An error occurred while processing your request."
             )
             self.clear_entries()
             return False, None
 
         if not valid_uname_or_email:
-            showwarning(
-                "Invalid Input",
-                "Please enter a valid username or email."
-            )
             self.clear_entries()
             return False, None
 
@@ -113,16 +110,12 @@ class SignIn(FrameBase):
         except ValueError:
             showwarning(
                 "Error",
-                "An error occurred while validating the password."
+                "An error occurred while processing your request."
             )
             self.clear_entries()
             return False
 
         if not valid_password:
-            showwarning(
-                "Invalid Input",
-                "Please enter a valid password."
-            )
             self.clear_entries()
             return False
 

@@ -12,9 +12,11 @@
 from app.gui.utilities.EntryBehavior import EntryBehavior
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.logic.models.User import User
-from app.logic.utilities.validation import is_valid_password, \
+from app.logic.utilities.validation import \
     validate_passwords_match, input_string, non_empty_string, \
-    is_email_or_username
+    is_email_or_username, password_has_uppercase, password_has_digit, \
+    password_has_special_char, password_has_lowercase, is_password_length, \
+    no_spaces, is_name
 
 # python imports
 from tkinter import ttk
@@ -76,14 +78,15 @@ class SignUp(FrameBase):
         run validation and sign up the user
         :return: None
         '''
-        first_name, last_name, username, email, password, conf_pass, campus = \
+        first_name, last_name, username, email, password, conn_pass, campus = \
             self.__required_values
 
         if not all(input_string(entry, non_empty_string)
                    for entry in self.__required_values):
             showwarning(
                 "Invalid Input",
-                "Please fill in all fields before signing up."
+                "Please fill in all fields before signing up.",
+                parent=self._gui.root
             )
             return
 
@@ -101,16 +104,32 @@ class SignUp(FrameBase):
         if not signed_up:
             showwarning(
                 "Sign Up Failed",
-                "Try again or contact the Administrator"
+                "Try again or contact the Administrator",
+                parent=self._gui.root
             )
             self.clear_fields()
         else:
             showinfo(
                 "Sign Up Successful",
-                "Your account has been created. Please sign in."
+                "Your account has been created. Please sign in.",
+                parent=self._gui.root
             )
             self.clear_fields()
             # self.send_to_route("sign_in")
+
+    # --------------------
+    def show_valid_name(self, valid: Tuple[bool, None], entry: ttk.Entry) -> None:
+        '''
+        show warning if name is not in valid params
+        '''
+        is_valid, _pickle = valid
+        if not is_valid and entry.get() != '':
+            showwarning(
+                "Input Error",
+                "Name field can only contain letters and hyphens"
+            )
+            entry.delete(0, tkinter.END)
+            entry.focus()
 
     # --------------------
     def show_password_mismatch(self, mismatch: bool) -> None:
@@ -122,9 +141,11 @@ class SignUp(FrameBase):
         if mismatch is False and self.__confirm_password_entry.get() != '':
             showwarning(
                 "Password Mismatch",
-                "The passwords you entered do not match. Please try again."
+                "The passwords you entered do not match. Please try again.",
+                parent=self._gui.root
             )
             self.__confirm_password_entry.delete(0, tkinter.END)
+            self.__confirm_password_entry.focus()
 
     # --------------------
     def show_passwords_valid(self, is_valid: bool) -> None:
@@ -136,9 +157,16 @@ class SignUp(FrameBase):
         if is_valid is False and self.__password_entry.get() != '':
             showwarning(
                 "Invalid Password",
-                "Password must be at least 8 characters. Please try again."
+                "\nPassword must contain"
+                "\nat least 8 characters,"
+                "\nan uppercase letter,"
+                "\na lowercase letter,"
+                "\na special character\n(e.g., !, @, #, $),"
+                "\na digit"
+                "\nand no spaces\n"
             )
             self.__password_entry.delete(0, tkinter.END)
+            self.__password_entry.focus()
 
     # --------------------
     def show_email_or_username_valid(self, valid: tuple[bool, str]) -> None:
@@ -153,9 +181,46 @@ class SignUp(FrameBase):
                 self.__email_entry.get() != '':
             showwarning(
                 "Invalid Input",
-                "Please enter a valid email"
+                "Please enter a valid email",
+                parent=self._gui.root
             )
             self.__email_entry.delete(0, tkinter.END)
+            self.__email_entry.focus()
+
+    # --------------------
+    def show_valid_username(self, valid: tuple[bool, str]) -> None:
+        '''
+        show if the chosen username is valid
+        '''
+        is_valid, pattern = valid
+        if (is_valid is False or pattern != 'username') and \
+                self.__username_entry.get() != '':
+            showwarning(
+                "Invalid Input",
+                "Please enter a valid username\n"
+                "No special characters allowed",
+                parent=self._gui.root
+            )
+            self.__username_entry.delete(0, tkinter.END)
+            self.__username_entry.focus()
+
+    # --------------------
+    def check_password_constraints(self, password: str) -> bool:
+        '''
+        function to call password validation functions
+        '''
+        password_validations = [
+            no_spaces(password),
+            is_password_length(password),
+            password_has_digit(password),
+            password_has_lowercase(password),
+            password_has_uppercase(password),
+            password_has_special_char(password)
+        ]
+
+        if not all(password_validations):
+            return False
+        return True
 
 # --------------------------------- config ---------------------------------
     # --------------------
@@ -177,14 +242,34 @@ class SignUp(FrameBase):
             self._builder.get_object(
                 "first_name_entry",
                 self._frame)
+        self.__first_name_entry.bind(
+            "<FocusOut>",
+            lambda e: self.show_valid_name(
+                is_name(self.__first_name_entry.get()),
+                self.__first_name_entry
+            )
+        )
         self.__last_name_entry: ttk.Entry = \
             self._builder.get_object(
                 "last_name_entry",
                 self._frame)
+        self.__last_name_entry.bind(
+            "<FocusOut>",
+            lambda e: self.show_valid_name(
+                is_name(self.__last_name_entry.get()),
+                self.__last_name_entry
+            )
+        )
         self.__username_entry: ttk.Entry = \
             self._builder.get_object(
                 "username_entry",
                 self._frame)
+        self.__username_entry.bind(
+            "<FocusOut>",
+            lambda e: self.show_valid_username(
+                is_email_or_username(self.__username_entry.get())
+            )
+        )
         self.__email_entry: ttk.Entry = \
             self._builder.get_object(
                 "email_entry",
@@ -208,14 +293,19 @@ class SignUp(FrameBase):
         pw_tool_tip = EntryBehavior.attach(
             self.__password_entry,
             "Enter password",
-            "\nPassword must be at least 8 characters\n"
+            "\nMust contain"
+            "\nat least 8 characters,"
+            "\nan uppercase letter,"
+            "\na lowercase letter,"
+            "\na special character\n(e.g., !, @, #, $),"
+            "\nand a digit\n"
         )
         for tool_tip in pw_tool_tip:
             self.__tooltips.append(tool_tip)
         self.__password_entry.bind(
-            "<Leave>",
+            "<FocusOut>",
             lambda e: (self.show_passwords_valid(
-                is_valid_password(self.__password_entry.get())
+                self.check_password_constraints(self.__password_entry.get())
                 ), pw_tool_tip[0].hide(e), pw_tool_tip[1].hide(e))  # type: ignore
             )
 
@@ -280,7 +370,7 @@ class SignUp(FrameBase):
 
 # ------------------------------ properties ---------------------------------
     @property
-    def __required_values(self) -> Tuple[str, str, str, str, str, str]:
+    def __required_values(self) -> Tuple[str, ...]:
         '''
         helper method to get required sign-up form values
         :return: tuple of required form values
@@ -295,6 +385,7 @@ class SignUp(FrameBase):
             self.__campus_entry.get()
         )
 
+    # --------------------
     @property
     def __clearable_entries(self) -> Tuple[ttk.Entry, ...]:
         '''
@@ -310,7 +401,7 @@ class SignUp(FrameBase):
             self.__confirm_password_entry
         )
 
-# --------------------------------- properties -------------------------------
+    # --------------------
     @property
     def __buttons(self) -> \
             dict[str, dict[str, dict[Callable, list[Any]] | list[str]]]:
