@@ -242,7 +242,6 @@ class Database:
                 ),
                 fetch_all=False
             )
-
             return True
 
         except pymssql.Error as e:

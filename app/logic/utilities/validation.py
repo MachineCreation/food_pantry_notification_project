@@ -12,6 +12,7 @@
 
 # python imports
 from typing import Callable, Tuple
+import re
 
 
 # ------------------------------ input validations ----------------------------
@@ -57,7 +58,6 @@ def is_email_or_username(value: str) -> Tuple[bool, str]:
     :return: bool, string bool:True if valid, False otherwise,
         string 'email' | 'username'
     '''
-    import re
     email_pattern = r'^[\w\.-]+@[\w\.-]+\.\w+$'
     username_pattern = r'^[a-zA-Z0-9_]+$'
     valid = bool(re.match(email_pattern, value) or
@@ -68,13 +68,74 @@ def is_email_or_username(value: str) -> Tuple[bool, str]:
 
 
 # --------------------
-def is_valid_password(value: str) -> bool:
+def is_name(value: str) -> Tuple[bool, None]:
     '''
-    validation function for password input
+    evaluates if the string entry is in name format
     :param value: the string to validate
     :return: True if valid, False otherwise
     '''
-    return len(value) >= 8
+    name_pattern = r'^[A-Za-z-]+$'
+    return bool(re.match(name_pattern, value)), None
+
+
+# --------------------
+def is_password_length(password: str) -> bool:
+    '''
+    validation function for password input
+    :param password: the string to validate
+    :return: True if valid, False otherwise
+    '''
+    return len(password) >= 8
+
+
+# --------------------
+def password_has_uppercase(password: str) -> bool:
+    '''
+    :return boolean: return true if password has an uppercase letter
+        else return False
+    '''
+    uppercase = any(char.isupper() for char in password)
+    return uppercase
+
+
+# --------------------
+def password_has_lowercase(password: str) -> bool:
+    '''
+    :return boolean: return true if password has a lowercase letter
+        else return False
+    '''
+    lowercase = any(char.islower() for char in password)
+    return lowercase
+
+
+# --------------------
+def password_has_digit(password: str) -> bool:
+    '''
+    :return boolean: return true if password has a digit
+        else return False
+    '''
+    digit = any(char.isdigit() for char in password)
+    return digit
+
+
+# --------------------
+def password_has_special_char(password: str) -> bool:
+    '''
+    :return boolean: return true if password has a special character
+        else return False
+    '''
+    special_char = any(not char.isalnum() for char in password)
+    return special_char
+
+
+# --------------------
+def no_spaces(value: str) -> bool:
+    '''
+    :return bool: return True if there are no spaces in the stirng
+        else return False
+    '''
+    spaces = any(char.isspace() for char in value)
+    return not spaces
 
 
 # --------------------

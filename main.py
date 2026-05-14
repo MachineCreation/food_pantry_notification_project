@@ -21,6 +21,9 @@ class FoodPantryProject():
     __gui: GUI | None = None
 
     def __init__(self):
+        '''
+        initialize GUI for the application
+        '''
         self.__gui = GUI()
 
     def run(self):
