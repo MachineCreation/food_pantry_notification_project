@@ -22,7 +22,8 @@ class GUI:
     __root: tkinter.Tk | None = None
     __app_context: dict = {
         'database': None,
-        'user': None
+        'user': None,
+        'notifier': None
     }
 
     def __init__(self):
