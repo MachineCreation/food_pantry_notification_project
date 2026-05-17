@@ -354,55 +354,32 @@ class Database:
             print('Error logging notification in database.log_notification')
 
 # ---------------------------- template methods ------------------------------
-    def get_template_names(self) -> Tuple[str]:
+    def get_all_templates(self) -> List[Tuple]:
         '''
-        get a list of template names from the database
+        get all templates from the database and return them to the caller
+        :return: list of table row tuples. Tuple attribute order
+            template_id: int,
+            template_name: str,
+            creator_id: int,
+            subject: str,
+            template_body: str,
+            tags: List
         '''
 
-        template_name_query = '''
-        SELECT template_name
-        FROM TEMPLATE;
-        '''
-
-        try:
-            names = self.execute_query(
-                template_name_query,
-                fetch_all=True
-            )
-            print('from database.get_template_names')
-            print(names)
-            return names
-        except pymssql.exceptions:
-            print('An error occured on database.get_template_names')
-            return []
-
-    # --------------------
-    def get_template_by_name(self, name: str) -> Tuple[bool, int, str, str]:
-        '''
-        try to get template details from database
-        :param name: string of template name
-        :return: Tuple of 
-        '''
-        get_template_query = '''
-        SELECT template_id, subject, template_body
+        get_all_templates_query = '''
+        SELECT *
         FROM TEMPLATE
-        WHERE template_name = %s
         '''
 
         try:
-            template_id, subject, message = self.execute_query(
-                get_template_query,
-                name,
-                fetch_all=False
+            templates = self.execute_query(
+                get_all_templates_query
             )
-            print(template_id, subject, message)
-            if not all([template_id, subject, message]):
-                raise ValueError
-            return True, template_id, subject, message
-
-        except ValueError:
-            print('no data fetched by database.get_template_by_name')
-            return False, -1, '', ''
+            
+            return templates
+        
+        except pymssql.Error as e:
+            print(f'Error on database.get_all_templates\n{e.with_traceback}')
 
 # --------------------------------- static -----------------------------------
     @staticmethod

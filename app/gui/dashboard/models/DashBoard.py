@@ -11,6 +11,7 @@
 # Local imports
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.logic.models.User import User
+from app.logic.models.Template import Template
 
 # python imports
 from tkinter import ttk
@@ -37,6 +38,7 @@ class DashBoard(FrameBase):
         self.configure_member_buttons(self._app_context['user'].role)
         self.configure_admin_buttons(self._app_context['user'].role)
         self.configure_text_area()
+        self.fill_template_app_context()
 
 # --------------------------------- config ---------------------------------
     def configure_buttons(self):
@@ -184,3 +186,15 @@ class DashBoard(FrameBase):
             state='disabled',
             font=("Arial", 12)
             )
+        
+    # --------------------
+    def fill_template_app_context(self) -> None:
+        '''
+        conditionally get all templates from the database 
+        '''
+        
+        role: int = self._app_context['user'].role
+
+        if role not in [0, 1]:
+            Template.get_all_templates(self._app_context['database'])
+

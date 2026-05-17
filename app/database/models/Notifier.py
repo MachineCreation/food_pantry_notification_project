@@ -44,13 +44,14 @@ class Notifier():
         :return: boolean indicating success or failure of the email sending
             operation
         '''
+        date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
         try:
             if not self.__connection:
                 self.connect()
             if not all([subject, message, recipients]):
                 raise ValueError()
 
-            return True, datetime.now()
+            return True, date
 
         except ValueError or KeyError:
             return False, None

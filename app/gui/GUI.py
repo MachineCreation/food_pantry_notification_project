@@ -9,6 +9,7 @@
 
 # Local imports
 from app.gui.utilities.routes import send_to_route
+from app.logic.models.Template import Template
 
 # python imports
 import tkinter
@@ -23,7 +24,7 @@ class GUI:
     __app_context: dict = {
         'database': None,
         'user': None,
-        'notifier': None
+        'notifier': None,
     }
 
     def __init__(self):

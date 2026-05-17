@@ -12,6 +12,7 @@
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.logic.models.Notification import Notification
 from app.logic.utilities.validation import non_empty_string
+from app.logic.models.Template import Template
 
 # python imports
 from typing import Callable, Any
@@ -34,7 +35,7 @@ class SendNotification(FrameBase):
         self.__template_id: int | None = None
         self.__image_id: int | None = None
         self.__template_names = \
-            Notification.get_template_names(self._app_context)
+            list(Template.all_templates().keys())
         self.register_buttons(self.__buttons)
         self.register_entries()
 
@@ -68,21 +69,19 @@ class SendNotification(FrameBase):
 
         notification.send_notification(self._app_context)
 
+        self.clear_fields()
+
     # --------------------
     def populate_from_template(self) -> None:
         '''
         if a template is selected, populate the subject and message entries
         '''
+        template: Template = Template.all_templates().get(self.__template_entry.get())
 
-        self.__template_id, template_subject, template_message = \
-            Notification.get_template(
-                self.__template_entry.get(),
-                self._app_context
-            )
-
-        self.__subject_entry.set(template_subject)
+        self.__subject_entry.set(template.subject)
         self.__message_entry.delete(1.0, tkinter.END)
-        self.__message_entry.insert(1.0, template_message)
+        self.__message_entry.insert(1.0, template.template_body)
+        self.__template_id = template.template_id
 
     # --------------------
     def clear_fields(self) -> None:
