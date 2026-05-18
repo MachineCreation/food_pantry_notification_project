@@ -369,7 +369,6 @@ class Database:
         get_all_templates_query = '''
         SELECT *
         FROM TEMPLATE
-        WHERE tags IS NULL
         '''
 
         try:
