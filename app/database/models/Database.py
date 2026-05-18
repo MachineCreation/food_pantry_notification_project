@@ -369,15 +369,16 @@ class Database:
         get_all_templates_query = '''
         SELECT *
         FROM TEMPLATE
+        WHERE tags IS NULL
         '''
 
         try:
             templates = self.execute_query(
                 get_all_templates_query
             )
-            
+
             return templates
-        
+
         except pymssql.Error as e:
             print(f'Error on database.get_all_templates\n{e.with_traceback}')
 

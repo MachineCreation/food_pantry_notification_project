@@ -76,12 +76,15 @@ class SendNotification(FrameBase):
         '''
         if a template is selected, populate the subject and message entries
         '''
-        template: Template = Template.all_templates().get(self.__template_entry.get())
+        template: Template = \
+            Template.all_templates().get(self.__template_entry.get())
 
-        self.__subject_entry.set(template.subject)
+        self.__subject_entry.delete(0, tkinter.END)
+        self.__subject_entry.insert(0, template.subject)
         self.__message_entry.delete(1.0, tkinter.END)
         self.__message_entry.insert(1.0, template.template_body)
         self.__template_id = template.template_id
+        self.__image_id = None
 
     # --------------------
     def clear_fields(self) -> None:
@@ -89,8 +92,9 @@ class SendNotification(FrameBase):
         clear all registered fields
         '''
         self.__template_entry.set('')
-        self.__subject_entry.set('')
+        self.__subject_entry.delete(0, tkinter.END)
         self.__message_entry.delete(1.0, tkinter.END)
+        self.__template_id = None
 
     # --------------------
     def register_entries(self) -> None:
@@ -108,7 +112,7 @@ class SendNotification(FrameBase):
             lambda e: self.populate_from_template()
         )
 
-        self.__subject_entry: ttk.Combobox = \
+        self.__subject_entry: ttk.Entry = \
             self._builder.get_object(
                 "subject_entry",
                 self._frame

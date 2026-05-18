@@ -15,7 +15,7 @@ from app.database.models.Notifier import Notifier
 from app.logic.models.User import User
 
 # python imports
-from typing import Tuple, List
+from typing import Tuple
 from datetime import datetime
 
 
@@ -62,10 +62,10 @@ class Notification():
             self.__num_recipients: int = len(recipients)
 
             # send notification
-            sent, self.__date = notifier.send_emails(
+            sent, self.__date = notifier.process_emails(
                 self.__subject,
                 self.__message,
-                self.__num_recipients
+                recipients
             )
 
             if not sent:
@@ -83,7 +83,6 @@ class Notification():
             )
 
         except (ValueError or KeyError) as e:
-            print('there was an error on Notification.send_notificaation, time for some '
-                  'debugging, lucky you!\n'
-                  f'{e}')
-
+            print('there was an error on Notification.send_notification, '
+                  'time for some debugging, lucky you!\n'
+                  f'{e.__str__}')

@@ -20,3 +20,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 DB_NAME = os.getenv("DB_NAME")
 DB_USERNAME = os.getenv("DB_USERNAME")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
+
+GMAIL = os.getenv("GMAIL")
+GMAIL_KEY = os.getenv("GMAIL_KEY")
+DEV_EMAIL = os.getenv("DEV_EMAIL")
