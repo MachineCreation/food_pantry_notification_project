@@ -278,7 +278,8 @@ class Database:
 # ------------------------ notification log methods ---------------------------
     def get_recipients(self) -> List[str]:
         '''
-        
+        gets a list of subscriber emails from the database and passes it
+            forward
         '''
         get_recipients_query = '''
         SELECT email_address

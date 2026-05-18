@@ -79,12 +79,23 @@ class SendNotification(FrameBase):
         template: Template = \
             Template.all_templates().get(self.__template_entry.get())
 
+        self.__subject_entry.configure(
+            state="normal"
+        )
         self.__subject_entry.delete(0, tkinter.END)
         self.__subject_entry.insert(0, template.subject)
+        self.__subject_entry.configure(
+            state="readonly"
+        )
+        self.__message_entry.configure(
+            state="normal"
+        )
         self.__message_entry.delete(1.0, tkinter.END)
         self.__message_entry.insert(1.0, template.template_body)
+        self.__message_entry.configure(
+            state="disabled"
+        )
         self.__template_id = template.template_id
-        self.__image_id = None
 
     # --------------------
     def clear_fields(self) -> None:
@@ -92,9 +103,16 @@ class SendNotification(FrameBase):
         clear all registered fields
         '''
         self.__template_entry.set('')
+        self.__subject_entry.configure(
+            state="normal"
+        )
         self.__subject_entry.delete(0, tkinter.END)
+        self.__message_entry.configure(
+            state="normal"
+        )
         self.__message_entry.delete(1.0, tkinter.END)
         self.__template_id = None
+        self.__image_id = None
 
     # --------------------
     def register_entries(self) -> None:
