@@ -13,7 +13,8 @@
 from app.database.models.Database import Database
 
 # python imports
-from typing import List
+# from typing import List
+from datetime import datetime
 
 
 class Template():
@@ -27,7 +28,8 @@ class Template():
             creator_id: int,
             subject: str,
             template_body: str,
-            tags: str  # change this to a list
+            tags: str,  # change this to a list
+            c_date: datetime
     ) -> None:
         self.__template_id = template_id
         self.__template_name = template_name
@@ -35,6 +37,7 @@ class Template():
         self.__subject = subject
         self.__template_body = template_body
         self.__tags = tags
+        self.__created_date = c_date
 
 # ----------------------------------- properties ------------------------------
     @property
@@ -78,6 +81,10 @@ class Template():
         int id of user that created template
         '''
         return self.__creator_id
+    
+    @property
+    def created_date(self):
+        return self.__created_date
 
 # --------------------------------- class methods -----------------------------
     @classmethod

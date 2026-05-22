@@ -17,7 +17,7 @@ from app.logic.models.Template import Template
 # python imports
 from typing import Callable, Any
 from tkinter import ttk
-from tkinter.messagebox import showwarning
+from tkinter.messagebox import showwarning, showinfo
 import tkinter
 
 
@@ -67,9 +67,19 @@ class SendNotification(FrameBase):
             self.__image_id
         )
 
-        notification.send_notification(self._app_context)
+        sent: bool = notification.send_notification(self._app_context)
 
-        self.clear_fields()
+        if sent:
+            showinfo(
+                'Confirmation',
+                'Messages sent successfully'
+            )
+            self.clear_fields()
+        else:
+            showwarning(
+                'send error',
+                'Messages not sent'
+            )
 
     # --------------------
     def populate_from_template(self) -> None:

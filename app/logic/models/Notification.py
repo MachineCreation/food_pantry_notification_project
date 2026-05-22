@@ -41,7 +41,7 @@ class Notification():
     def send_notification(
             self,
             app_context: dict
-    ):
+    ) -> bool:
         '''
         breaks up logic to send notifications and log them to notification logs
         :param subject: string subject of the notification
@@ -53,6 +53,7 @@ class Notification():
             # assign variables
             database: Database = app_context['database']
             sender: User = app_context['user']
+            notifier = app_context['notifier']
 
             if not app_context['notifier']:
                 notifier = app_context['notifier'] = Notifier()
@@ -81,8 +82,11 @@ class Notification():
                 self.__image_id,
                 self.__template_id
             )
+            
+            return True
 
         except (ValueError or KeyError) as e:
             print('there was an error on Notification.send_notification, '
                   'time for some debugging, lucky you!\n'
                   f'{e.__str__}')
+            return False
