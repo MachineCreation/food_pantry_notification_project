@@ -36,6 +36,14 @@ class SignIn(FrameBase):
 
         self.register_buttons(self.__buttons)
         self.register_entries()
+        self._frame.bind_all(
+            "<Return>",
+            lambda e: self.sign_in()
+        )
+        self._frame.bind_all(
+            "<KP_Enter>",
+            lambda e: self.sign_in()
+        )
 
     # --------------------
     def sign_in(self) -> None:
@@ -44,12 +52,7 @@ class SignIn(FrameBase):
         :return: None
         '''
         valid_uname_or_email, uname_email = self.__validate_username_or_email()
-        if not valid_uname_or_email:
-            return
-
         valid_password = self.__validate_password()
-        if not valid_password:
-            return
 
         username_or_email = self.__username_entry.get()
         password = self.__password_entry.get()
@@ -60,14 +63,16 @@ class SignIn(FrameBase):
             id_type=str(uname_email),
             app_context=self._app_context)
 
-        if authenticated:
-            self.send_to_route("dashboard")
-        else:
+        if not all([authenticated, valid_uname_or_email, valid_password]):
             showwarning(
-                "Authentication Failed",
-                "Invalid username/email or password. Please try again."
+                "Input Error",
+                "Invalid username or password. "
+                "Try again or contact your Administrator"
             )
             self.clear_entries()
+            return
+
+        self.send_to_route('dashboard')
 
     # --------------------
     def __validate_username_or_email(self) -> tuple[bool, str | None]:
@@ -83,16 +88,12 @@ class SignIn(FrameBase):
         except ValueError:
             showwarning(
                 "Error",
-                "An error occurred while validating the username or email."
+                "An error occurred while processing your request."
             )
             self.clear_entries()
             return False, None
 
         if not valid_uname_or_email:
-            showwarning(
-                "Invalid Input",
-                "Please enter a valid username or email."
-            )
             self.clear_entries()
             return False, None
 
@@ -113,16 +114,12 @@ class SignIn(FrameBase):
         except ValueError:
             showwarning(
                 "Error",
-                "An error occurred while validating the password."
+                "An error occurred while processing your request."
             )
             self.clear_entries()
             return False
 
         if not valid_password:
-            showwarning(
-                "Invalid Input",
-                "Please enter a valid password."
-            )
             self.clear_entries()
             return False
 

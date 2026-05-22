@@ -24,9 +24,11 @@ class User():
     def __init__(
             self,
             username: str,
+            user_id: int,
             role: str
             ):
         self.__username = username
+        self.__user__id = user_id
         self.__role = role
 
     # --------------------
@@ -47,6 +49,14 @@ class User():
         :return: the username
         '''
         return self.__username
+    
+    @property
+    def user_id(self) -> int:
+        '''
+        get the user_id
+        :return: user id
+        '''
+        return self.__user__id
 
     @property
     def role(self) -> str:
@@ -56,7 +66,7 @@ class User():
         '''
         return self.__role
 
-# --------------------------------- static ---------------------------------
+# --------------------------------- STATIC ---------------------------------
     @staticmethod
     def authenticate(
             password: str,
@@ -74,14 +84,15 @@ class User():
         database: Database = app_context['database']
 
         if database:
-            authenticated, user_role, username = database.authenticate_user(
-                id,
-                password,
-                id_type
-                )
+            authenticated, user_role, username, user_id = \
+                database.authenticate_user(
+                                            id,
+                                            password,
+                                            id_type
+                                           )
 
             if authenticated:
-                app_context['user'] = User(username, user_role)
+                app_context['user'] = User(username, user_id, user_role)
                 return authenticated
 
         return False

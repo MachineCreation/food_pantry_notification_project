@@ -22,7 +22,8 @@ class GUI:
     __root: tkinter.Tk | None = None
     __app_context: dict = {
         'database': None,
-        'user': None
+        'user': None,
+        'notifier': None,
     }
 
     def __init__(self):
@@ -35,6 +36,7 @@ class GUI:
 
         # set basic params for Tk root
         self.__root: tkinter.Tk = tkinter.Tk()
+        self.__root.protocol("WM_DELETE_WINDOW", self.close_connections)
         self.__root.title("Food Pantry Notification App")
         self.__root.resizable(True, True)
         self.__root.grid()
@@ -52,12 +54,14 @@ class GUI:
         else:
             self.show_route("dashboard")
 
-    # --------------------
+# --------------------------------- methods ---------------------------------
     def clear_frame(self):
         '''
         destroy the current frame if it exists
         '''
         if self.__current_frame:
+            self.__current_frame.unbind_all("<Return>")
+            self.__current_frame.unbind_all("<KP_Enter>")
             self.__current_frame.destroy()
 
     # --------------------
@@ -69,6 +73,21 @@ class GUI:
 
         database = Database()
         return database
+
+    # --------------------
+    def close_connections(self):
+        '''
+        close all open data connections
+        '''
+        print('closing connections ...')
+        if self.__app_context['database']:
+            self.__app_context['database'].disconnect()
+            print('closed database connection')
+        if self.__app_context['notifier']:
+            self.__app_context['notifier'].disconnect()
+            print('closed notifier connection')
+        print('... all connections closed')
+        self.__root.destroy()
 
 # --------------------------------- properties -----------------------------
     @property

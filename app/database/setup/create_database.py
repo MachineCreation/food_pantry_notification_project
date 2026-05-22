@@ -29,9 +29,9 @@ def create_table() -> None:
 
     roles_table_query = """
     IF NOT EXISTS (
-        SELECT * 
-        FROM    sysobjects 
-        WHERE   name='ROLES' 
+        SELECT *
+        FROM    sysobjects
+        WHERE   name='ROLES'
         AND xtype='U'
         )
 
@@ -53,9 +53,9 @@ def create_table() -> None:
     """
     images_table_query = """
     IF NOT EXISTS (
-        SELECT * 
-        FROM    sysobjects 
-        WHERE   name='IMAGES' 
+        SELECT *
+        FROM    sysobjects
+        WHERE   name='IMAGES'
         AND xtype='U'
         )
 
@@ -119,7 +119,8 @@ def create_table() -> None:
         template_name   NVARCHAR(255)   NOT NULL UNIQUE,
         creator_id      INTEGER         NOT NULL,
         subject         NVARCHAR(255)   NOT NULL,
-        tags            NVARCHAR(MAX)   NOT NULL,
+        template_body   NVARCHAR(MAX)   NOT NULL,
+        tags            NVARCHAR(MAX)   NULL,
             CONSTRAINT fk_creator_id    FOREIGN KEY (creator_id)
                 REFERENCES USERS(user_id)
                 );"""
@@ -144,11 +145,11 @@ def create_table() -> None:
     CREATE TABLE NOTIFICATIONS (
         notification_id     INTEGER IDENTITY(1,1)    PRIMARY KEY,
         sender_id           INTEGER     NOT NULL,
-        template_id         INTEGER     NOT NULL,
+        template_id         INTEGER     NULL,
         subject             NVARCHAR(255)   NOT NULL,
         body_text           NVARCHAR(MAX)   NOT NULL,
         num_recip           INTEGER     NOT NULL,
-        image_id            INTEGER     NOT NULL,
+        image_id            INTEGER     NULL,
         date_time           DATETIME    NOT NULL,
             CONSTRAINT fk_sender_id     FOREIGN KEY (sender_id)
                 REFERENCES USERS(user_id),
@@ -186,7 +187,7 @@ def create_table() -> None:
     database.execute_query(
         images_data_query
     )
-    
+
     print("Images data added safely")
 
     users_data_query = """
@@ -224,9 +225,10 @@ def create_table() -> None:
     print("Users data added safely")
 
     template_data_query = """
-    INSERT INTO TEMPLATE (template_name, creator_id, subject, tags)
-        VALUES ('WelcomeTemplate', 3, 'Welcome to our service', 'welcome,intro'),
-            ('AlertTemplate', 2, 'Important Alert', 'alert,system');
+    INSERT INTO TEMPLATE (template_name, creator_id, subject, template_body, tags)
+        VALUES ('WelcomeTemplate', 3, 'Welcome to our service', 'Welcome to the Pantry project. We look forward to seeing you.', NULL),
+            ('AlertTemplate', 2, 'Important Alert', 'This is an important test of the notification system.', NULL),
+            ('ServiceTemplate', 1, 'Notice of Service Interruption', 'This is a notification to inform you that there will be a service interruption', 'date,all_contacts');
     """
 
     database.execute_query(

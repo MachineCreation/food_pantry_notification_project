@@ -14,7 +14,9 @@ import env
 # Python imports
 import pymssql
 import bcrypt
-from typing import Tuple
+from typing import Tuple, List
+from datetime import datetime
+from itertools import chain
 
 
 class Database:
@@ -123,7 +125,7 @@ class Database:
 
     def authenticate_user(
             self,
-            user_id: str,
+            user: str,
             password: str,
             id_type: str
             ) -> tuple[bool, str | None, str | None]:
@@ -134,12 +136,12 @@ class Database:
         '''
         if id_type not in ("username", "email"):
             print('missing parameters')
-            return False, None, None
+            return False, None, None, None
 
         column_name = "username" if id_type == "username" else "email_address"
 
         query = f'''
-            SELECT password_hash, role_id, username
+            SELECT password_hash, role_id, username, user_id
             FROM USERS
             WHERE {column_name} = %s;
         '''
@@ -147,25 +149,25 @@ class Database:
         try:
             result = self.execute_query(
                 query,
-                (user_id,),
+                (user,),
                 fetch_all=False
             )
 
             if not result:
-                return False, None, None
+                return False, None, None, None
 
-            stored_password, user_role, username = result
+            stored_password, user_role, username, user_id = result
 
             authenticated = bcrypt.checkpw(
                 password.encode("utf-8"),
                 stored_password.encode("utf-8")
             )
 
-            return authenticated, user_role, username
+            return authenticated, user_role, username, user_id
 
         except pymssql.Error as e:
             print(f'SQL error: {e}')
-            return False, None, None
+            return False, None, None, None
 
     # --------------------
     def sign_up_user(
@@ -216,7 +218,7 @@ class Database:
             ).decode("utf-8")
 
             print('inserting user')
-            did_create = self.execute_query(
+            self.execute_query(
                 '''
                 INSERT INTO USERS (
                     first_name,
@@ -242,8 +244,7 @@ class Database:
                 ),
                 fetch_all=False
             )
-            if did_create:
-                return True
+            return True
 
         except pymssql.Error as e:
             print(f'an error occured: {e}')
@@ -274,7 +275,114 @@ class Database:
             print(f'SQL Error: {e}')
             return False, ('none', 'none')
 
-# --------------------------------- static ---------------------------------
+# ------------------------ notification log methods ---------------------------
+    def get_recipients(self) -> List[str]:
+        '''
+        gets a list of subscriber emails from the database and passes it
+            forward
+        '''
+        get_recipients_query = '''
+        SELECT email_address
+        FROM USERS
+        WHERE role_id = 1
+        '''
+
+        try:
+            recipients = list(chain.from_iterable(
+                    self.execute_query(
+                        get_recipients_query,
+                        fetch_all=True
+                    )
+                )
+            )
+            return recipients
+        except ValueError or pymssql.Error:
+            print('no recipients returned from database.get_recipients')
+
+    def log_notification(
+            self,
+            date: datetime,
+            subject: str,
+            message: str,
+            sender_id: int,
+            num_recipients: int,
+            image_id: int | None = None,
+            template_id: int | None = None,
+    ) -> bool:
+        '''
+        log the notification in the database
+        :param date: datetime of the notification
+        :param subject: string subject of the notification
+        :param message: string message content of the notification
+        :param user_id: int user id of the sender
+        :param num_recipients: int number of recipients that received the
+            notification
+        :param template: string name of the template used for the notification
+        :return: boolean indicating success or failure of the logging operation
+        '''
+
+        self.ensure_connection()
+
+        log_notification_query = '''
+        INSERT INTO NOTIFICATIONS (
+                sender_id,
+                template_id,
+                subject,
+                body_text,
+                num_recip,
+                image_id,
+                date_time
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+        '''
+
+        try:
+            print('logging notification')
+            self.execute_query(
+                log_notification_query,
+                (
+                    sender_id,
+                    template_id,
+                    subject,
+                    message,
+                    num_recipients,
+                    image_id,
+                    date
+                )
+            )
+
+        except pymssql.Error:
+            print('Error logging notification in database.log_notification')
+
+# ---------------------------- template methods ------------------------------
+    def get_all_templates(self) -> List[Tuple]:
+        '''
+        get all templates from the database and return them to the caller
+        :return: list of table row tuples. Tuple attribute order
+            template_id: int,
+            template_name: str,
+            creator_id: int,
+            subject: str,
+            template_body: str,
+            tags: List
+        '''
+
+        get_all_templates_query = '''
+        SELECT *
+        FROM TEMPLATE
+        '''
+
+        try:
+            templates = self.execute_query(
+                get_all_templates_query
+            )
+
+            return templates
+
+        except pymssql.Error as e:
+            print(f'Error on database.get_all_templates\n{e.with_traceback}')
+
+# --------------------------------- static -----------------------------------
     @staticmethod
     def rebuild_database():
         '''
