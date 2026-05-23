@@ -1,6 +1,6 @@
 # Food Pantry Notification Project
 
-This project is intended to be a desktop application for managing food pantry communication, account access, and role-based workflows.
+Desktop application for food pantry communication workflows. The app is built with Python and Tkinter, with a SQL Server backend.
 
 ## Contributors
 
@@ -11,122 +11,154 @@ This project is intended to be a desktop application for managing food pantry co
 | Nkobula Monzali | [PCC-NM](https://github.com/PCC-NM) |
 | Lloyd Truong | [Profile](https://github.com/) |
 
-## Project Vision
+## Overview
 
-The goal of this repository is to provide a simple desktop system that helps a food pantry organization manage user access and send notifications to the right people at the right time.
+This repository contains a desktop GUI app that currently supports:
 
-The application is intended to support three main needs:
+- sign-in / sign-up entry flow
+- route-based frame navigation
+- dashboard shell
+- notification log screen
+- send-notification screen
+- template creation screen
+- input validation utilities
+- SQL Server database connection and basic user auth/signup operations
 
-- secure user sign-in and sign-up
-- role-based access for administrators, members, and subscribers
-- a notification workflow for pantry-related communication
+## Tech Stack
 
-## Planned Features
-
-The intended product scope includes:
-
-- user account creation and authentication
-- email or username based login
-- password validation and secure password storage
-- a dashboard that changes based on the user's role
-- notification creation and sending tools
-- notification history or logs
-- template management for repeat messages
-- administrative user management tools
-- local database storage for application data
-
-## Intended Users
-
-This project is meant to support:
-
-- administrators who manage users and system settings
-- members who create or send pantry notifications
-- subscribers who receive updates and access limited features
-
-## Planned Tech Stack
-
-The project is expected to use:
-
-- Python as the primary programming language
-- Tkinter for the desktop user interface
-- SQLite for local data storage
-- `python-dotenv` for configuration management
+- Python 3.14
+- Tkinter (GUI)
+- SQL Server via `pymssql`
+- `python-dotenv` for environment variables
 - `bcrypt` for password hashing
 
-## Proposed Application Flow
+## Requirements
 
-The intended user flow is:
+- Python 3.14
+- Access to a SQL Server instance
+- PowerShell (commands below use Windows PowerShell)
 
-1. Launch the desktop application.
-2. Choose to sign in or create an account.
-3. Authenticate with a username or email and password.
-4. Open a dashboard tailored to the user's role.
-5. Access tools such as sending notifications, viewing logs, managing templates, or administering users.
+## Configuration
 
-## Planned Configuration
+Environment values are loaded from `.env` through `env.py`.
 
-The project is expected to read environment values from a `.env` file for settings such as:
-
-- database path
-- default administrator credentials
-- local development configuration
-
-An example configuration may include:
+Example `.env`:
 
 ```env
-DATABASE_URL=app/Database/database.db
-ADMIN_USERNAME=admin
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=admin123
+DATABASE_URL=your_sql_server_host
+DB_NAME=your_database_name
+DB_USERNAME=your_username
+DB_PASSWORD=your_password
 ```
 
-## Proposed Project Structure
+## Quick Start
 
-This repository is intended to grow into a structure similar to the following:
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python main.py
+```
+
+## Database Scripts
+
+The repository includes utility scripts for schema reset and seed operations:
+
+- `rebuild_database.py` drops and recreates tables
+- `populate_users.py` runs setup logic from `app/database/setup/create_database.py`
+
+Run schema rebuild:
+
+```powershell
+python rebuild_database.py
+```
+
+Important:
+
+- `app/database/setup/create_database.py` imports `USER_INFO` from `user_info.py`.
+- If `user_info.py` is not present in your local copy, create it before running seed/rebuild utilities.
+
+Example expected shape for `USER_INFO`:
+
+```python
+USER_INFO = {
+	"admin": {
+		"first_name": "Admin",
+		"last_name": "User",
+		"username": "admin",
+		"email": "admin@example.com",
+		"password": "ChangeMe123",
+		"allergies": False,
+		"campus": "Main",
+		"role": 3,
+	}
+}
+```
+
+## Routes Currently Registered
+
+From `app/gui/utilities/routes.py`:
+
+- `sign_in`
+- `sign_up`
+- `sign_in_up_choice`
+- `dashboard`
+- `notification_log`
+- `send_notification`
+- `create_template`
+
+## Testing
+
+This project currently uses a script-based test harness.
+
+- `test.py` runs `tests/test_run.py`
+- validation tests are in `tests/test_validation.py`
+- database behavior tests are in `tests/test_database.py`
+
+Run tests:
+
+```powershell
+python test.py
+```
+
+Note: these tests are not a full `pytest` assertion suite yet. They are functional checks printed by the custom runner.
+
+## Project Layout
 
 ```text
-food_pantry/
+food_pantry_notification_project/
 |-- main.py
 |-- env.py
 |-- requirements.txt
-|-- app/
-|   |-- database/
-|   |   |-- models/
-|   |   `-- setup/
-|   |-- gui/
-|   |   |-- dashboard/
-|   |   |-- logInOut/
-|   |   |-- send_notifications/
-|   |   |-- create_template/
-|   |   |-- review_notification_log/
-|   |   |-- manage_users/
-|   |   `-- utilities/
-|   `-- logic/
-|       |-- models/
-|       `-- utilities/
-|-- LICENSE
-`-- README.md
+|-- rebuild_database.py
+|-- populate_users.py
+|-- test.py
+|-- tests/
+|   |-- test_database.py
+|   |-- test_run.py
+|   `-- test_validation.py
+`-- app/
+	|-- database/
+	|   |-- models/
+	|   |   `-- Database.py
+	|   `-- setup/
+	|       |-- create_database.py
+	|       `-- drop_tables.py
+	|-- gui/
+	|   |-- GUI.py
+	|   |-- dashboard/
+	|   |   `-- models/DashBoard.py
+	|   |-- log_in_out/
+	|   |   `-- models/
+	|   |-- notification_log/
+	|   |-- send_notification/
+	|   |-- template_creation/
+	|   `-- utilities/
+	`-- logic/
+		|-- models/
+		`-- utilities/
 ```
-
-## Development Goals
-
-1. Build a working desktop GUI for authentication and navigation.
-2. Design a database schema for users, roles, and notifications.
-3. Implement secure authentication and account creation.
-4. Add dashboard screens for each role.
-5. Build notification, template, and user-management workflows.
-6. Add tests for validation, authentication, and database behavior.
-
-## Long-Term Direction
-
-The intended outcome is a maintainable desktop application that can serve as a course project and demonstrate:
-
-- GUI design with Python
-- layered application structure
-- form validation and authentication
-- database integration
-- role-based feature access
 
 ## License
 
-This project is distributed under the terms listed in `LICENSE`.
+This project is distributed under the terms in `LICENSE`.

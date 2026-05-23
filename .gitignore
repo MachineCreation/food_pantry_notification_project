@@ -1,0 +1,11 @@
+# .gitignore
+.env
+venv
+querys.sql
+user_info.py
+
+.idea/
+__pycache__/
+*/__pycache__/
+
+app/Database/database.db
