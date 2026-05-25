@@ -4,14 +4,12 @@
 # Author: Joseph Egan
 # 2026-04-22
 # Sources:
-# Contributors: Justin Crump, Lloyd Truong
+# Contributors: Justin Crump
 # -------------------------------------------------------------------------------
 # Description: route handler
 
 
 # Local imports
-from app.gui.template_creation.models.template_frame import TemplateFrame
-
 
 # python imports
 from typing import Callable
@@ -29,7 +27,7 @@ def send_to_route(route: str, gui: Callable) -> None:
     from app.gui.send_notification.models.SendNotification import \
         SendNotification
     from app.gui.notification_log.NotificationLog import NotificationLog
-    from app.gui.template_creation.models.template_frame import TemplateFrame
+    from app.gui.template_creation.models.template_view import TemplateView
 
     if not isinstance(gui, GUI):
         raise TypeError("Expected a GUI instance")
@@ -43,7 +41,7 @@ def send_to_route(route: str, gui: Callable) -> None:
         "dashboard": DashBoard,
         "notification_log": NotificationLog,
         "send_notification": SendNotification,
-        "create_template": TemplateFrame,
+        "create_template": TemplateView,
         # "manage_users": ,
         }
 
