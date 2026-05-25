@@ -1,25 +1,30 @@
 # -------------------------------------------------------------------------------
-# filename: app/gui/template_creation/models/template_controller.py
+# filename: template_controller.py
 # Author: Lloyd Truong
 # 2026-04-24
 # Sources: None
-# Contributors: Joseph Egan
+# Contributors:
 # -------------------------------------------------------------------------------
 
 from tkinter import messagebox
+from app.gui.template_creation.models.template_view import TemplateView
+from app.logic.models.Template_logic import TemplateLogic
 
 
 class TemplateController:
-    def __init__(self, parent, app_context):
+    def __init__(self, parent, app_context, gui):
         """
         Initializes the TemplateController
-        :param parent: the parent has been changed to the main GUI instance
+        :param parent: the parent tkinter window or frame
         :param app_context: shared application data
+        :param gui: main GUI object for routing/navigation
         """
-        self.parent = parent
+        self.__parent = parent
         self.app_context = app_context
-        self.view = parent
+        self.gui = gui
+        self.view = TemplateView(parent, self)
         self.db = self.app_context.get("database")
+        self.logic = TemplateLogic(self.db)
 
         default_tags = [
             "Date",
@@ -36,15 +41,10 @@ class TemplateController:
 
     def load_existing_templates(self):
         """
-        reads existing template names from the database and loads them
-        into the Existing Templates dropdown in the view
+        reads existing template names from the database and loads them into the Existing Templates dropdown in the view
         """
         try:
-            rows = self.db.execute_query(
-                "SELECT template_name FROM TEMPLATE ORDER BY template_name;",
-                fetch_all=True
-            )
-            template_names = [row[0] for row in rows] if rows else []
+            template_names = self.logic.get_existing_template_names()
             self.view.set_existing_templates(template_names)
         except Exception as e:
             print(f"Error loading existing templates: {e}")
@@ -60,12 +60,10 @@ class TemplateController:
         message = self.view.get_message()
 
         if not template_name.strip():
-            messagebox.showerror("Validation Error",
-                                 "Template Name cannot be empty.")
+            messagebox.showerror("Validation Error", "Template Name cannot be empty.")
             return
         if not subject.strip():
-            messagebox.showerror("Validation Error",
-                                 "Subject cannot be empty.")
+            messagebox.showerror("Validation Error", "Subject cannot be empty.")
             return
         if not selected_tag.strip():
             messagebox.showerror("Validation Error", "Tag cannot be empty.")
@@ -75,61 +73,12 @@ class TemplateController:
             return
 
         try:
-            creator_id = 1
-
-            existing_template = self.db.execute_query(
-                """
-                SELECT template_id
-                FROM TEMPLATE
-                WHERE template_name = %s;
-                """,
-                (template_name,),
-                fetch_all=False
-            )
-
-            if existing_template:
-                template_id = existing_template[0]
-
-                self.db.execute_query(
-                    """
-                    UPDATE TEMPLATE
-                    SET subject = %s, tags = %s
-                    WHERE template_id = %s;
-                    """,
-                    (subject, selected_tag, template_id),
-                    fetch_all=False
-                )
-            else:
-                self.db.execute_query(
-                    """
-                    INSERT INTO TEMPLATE (template_name, creator_id, subject, tags)
-                    VALUES (%s, %s, %s, %s);
-                    """,
-                    (template_name, creator_id, subject, selected_tag),
-                    fetch_all=False
-                )
-
-                new_row = self.db.execute_query(
-                    """
-                    SELECT template_id
-                    FROM TEMPLATE
-                    WHERE template_name = %s;
-                    """,
-                    (template_name,),
-                    fetch_all=False
-                )
-                template_id = new_row[0]
-
-            image_id = 1
-            num_recip = 0
-            self.db.execute_query(
-                """
-                INSERT INTO NOTIFICATIONS
-                    (sender_id, template_id, subject, body_text, num_recip, image_id, date_time)
-                VALUES (%s, %s, %s, %s, %s, %s, GETDATE());
-                """,
-                (creator_id, template_id, subject, message, num_recip, image_id),
-                fetch_all=False
+            self.logic.save_template_and_message(
+                template_name=template_name,
+                subject=subject,
+                tags=selected_tag,
+                message=message,
+                creator_id=1
             )
 
             messagebox.showinfo("Success", f"Template '{template_name}' saved successfully!")
@@ -138,26 +87,22 @@ class TemplateController:
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to save template: {e}")
 
-    def on_cancel(self, event=None):
-        """
-        Handler for the Cancel button.
-        """
-        print("Closing application...")
-        self.parent.quit()
-
-    # change button from "cancel" to "clear" use it to clear the form fields
-    # instead of closing the app
     def on_clear(self, event=None):
-        pass
+        """
+        Clears all form fields in the Template Creation screen.
+        """
+        self.view.clear_form()
 
-    # add a "back" button and method to navigate back to the "dashboard"
     def on_back(self, event=None):
-        self.parent.send_to_route("dashboard")
+        """
+        Goes back to the dashboard
+        """
+        from app.gui.utilities.routes import send_to_route
+        send_to_route("dashboard", self.gui)
 
     def on_load_template(self, event=None):
         """
-        Loads the selected template's information into the form fields
-        including the most recent body_text from NOTIFICATIONS
+        Loads the selected template's information into the form fields.
         """
         selected_name = self.view.get_selected_existing_template()
 
@@ -166,21 +111,7 @@ class TemplateController:
             return
 
         try:
-            row = self.db.execute_query(
-                """
-                SELECT TOP 1
-                    t.template_name,
-                    t.subject,
-                    t.tags,
-                    n.body_text
-                FROM TEMPLATE t
-                LEFT JOIN NOTIFICATIONS n ON t.template_id = n.template_id
-                WHERE t.template_name = %s
-                ORDER BY n.date_time DESC;
-                """,
-                (selected_name,),
-                fetch_all=False
-            )
+            row = self.logic.get_template_details(selected_name)
 
             if not row:
                 messagebox.showerror("Load Error", "Template not found.")
@@ -191,11 +122,16 @@ class TemplateController:
             self.view.set_template_name(template_name)
             self.view.set_subject(subject)
             self.view.set_tag_value(tags)
-
-            if body_text:
-                self.view.set_message(body_text)
-            else:
-                self.view.set_message("")
+            self.view.set_message(body_text if body_text else "")
 
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to load template: {e}")
+
+    def on_tag_selected(self, event=None):
+        """
+        inserts the selected tag into the message body when a tag is chosen
+        """
+        selected_tag = self.view.get_tag_value()
+        if selected_tag.strip():
+            self.view.insert_tag_into_message(selected_tag)
+

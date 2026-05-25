@@ -27,7 +27,7 @@ def send_to_route(route: str, gui: Callable) -> None:
     from app.gui.send_notification.models.SendNotification import \
         SendNotification
     from app.gui.notification_log.NotificationLog import NotificationLog
-    from app.gui.template_creation.models.template_view import TemplateView
+    from app.gui.template_creation.models.template_frame import TemplateFrame
 
     if not isinstance(gui, GUI):
         raise TypeError("Expected a GUI instance")
@@ -41,7 +41,7 @@ def send_to_route(route: str, gui: Callable) -> None:
         "dashboard": DashBoard,
         "notification_log": NotificationLog,
         "send_notification": SendNotification,
-        "create_template": TemplateView,
+        "create_template": TemplateFrame,
         # "manage_users": ,
         }
 
