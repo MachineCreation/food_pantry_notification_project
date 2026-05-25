@@ -6,7 +6,6 @@
 # Contributors: Joseph Egan
 # -------------------------------------------------------------------------------
 
-
 from tkinter import messagebox
 
 
