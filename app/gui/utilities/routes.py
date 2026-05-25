@@ -8,6 +8,7 @@
 # -------------------------------------------------------------------------------
 # Description: route handler
 
+
 # Local imports
 from app.gui.template_creation.models.template_frame import TemplateFrame
 

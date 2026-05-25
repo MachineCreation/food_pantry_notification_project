@@ -6,6 +6,7 @@
 # Contributors:
 # -------------------------------------------------------------------------------
 
+
 from tkinter import messagebox
 from app.gui.template_creation.models.template_view import TemplateView
 from app.logic.models.Template_logic import TemplateLogic

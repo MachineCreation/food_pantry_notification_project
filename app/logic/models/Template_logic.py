@@ -6,6 +6,7 @@
 # Contributors:
 # -------------------------------------------------------------------------------
 
+
 class TemplateLogic:
     """
     Handles database-related logic for the Template Creation feature.
