@@ -5,16 +5,19 @@
 # Sources:
 # Contributors:
 # -------------------------------------------------------------------------------
-# Description: A testing suite for validation utility functions
+# Description: unittest suite for validation utility functions
 # -------------------------------------------------------------------------------
 
-# Local imports
-from app.logic.utilities.validation import \
-    is_email_or_username, \
-    non_empty_string
+import unittest
 
+from app.logic.utilities.validation import (
+    input_string,
+    is_email_or_username,
+    is_password_length,
+    non_empty_string,
+    validate_passwords_match,
+)
 
-# ------------------------------ helper classes -------------------------------
 
 class MockEntry:
     """
@@ -29,254 +32,116 @@ class MockEntry:
         return self.value
 
 
-# ------------------------------ input_string ---------------------------------
+class TestValidation(unittest.TestCase):
+    # ------------------------------ input_string ---------------------------------
 
-def test_input_string():
-    return {
-        "input string accepts valid raw string": {
-            "params": {
-                "entry": "hello",
-                "validation_func": non_empty_string
-            },
-            "expected results": True
-        },
+    def test_input_string_accepts_valid_raw_string(self):
+        self.assertTrue(input_string("hello", non_empty_string))
 
-        "input string rejects empty raw string": {
-            "params": {
-                "entry": "",
-                "validation_func": non_empty_string
-            },
-            "expected results": False
-        },
+    def test_input_string_rejects_empty_raw_string(self):
+        self.assertFalse(input_string("", non_empty_string))
 
-        "input string rejects whitespace raw string": {
-            "params": {
-                "entry": "   ",
-                "validation_func": non_empty_string
-            },
-            "expected results": False
-        },
+    def test_input_string_rejects_whitespace_raw_string(self):
+        self.assertFalse(input_string("   ", non_empty_string))
 
-        "input string accepts entry object with valid value": {
-            "params": {
-                "entry": MockEntry("hello"),
-                "validation_func": non_empty_string
-            },
-            "expected results": True
-        },
+    def test_input_string_accepts_entry_object_with_valid_value(self):
+        self.assertTrue(input_string(MockEntry("hello"), non_empty_string))
 
-        "input string rejects entry object with empty value": {
-            "params": {
-                "entry": MockEntry(""),
-                "validation_func": non_empty_string
-            },
-            "expected results": False
-        },
+    def test_input_string_rejects_entry_object_with_empty_value(self):
+        self.assertFalse(input_string(MockEntry(""), non_empty_string))
 
-        "input string returns email pattern": {
-            "params": {
-                "entry": "test@example.com",
-                "validation_func": is_email_or_username
-            },
-            "expected results": (True, "email")
-        },
+    def test_input_string_returns_email_pattern(self):
+        self.assertEqual(
+            input_string("test@example.com", is_email_or_username),
+            (True, "email"),
+        )
 
-        "input string returns username pattern": {
-            "params": {
-                "entry": "test_user",
-                "validation_func": is_email_or_username
-            },
-            "expected results": (True, "username")
-        },
+    def test_input_string_returns_username_pattern(self):
+        self.assertEqual(
+            input_string("test_user", is_email_or_username),
+            (True, "username"),
+        )
 
-        "input string returns invalid pattern": {
-            "params": {
-                "entry": "bad user!",
-                "validation_func": is_email_or_username
-            },
-            "expected results": (False, "invalid")
-        },
-    }
+    def test_input_string_returns_invalid_pattern(self):
+        self.assertEqual(
+            input_string("bad user!", is_email_or_username),
+            (False, "invalid"),
+        )
 
+    # ------------------------------ non_empty_string -----------------------------
 
-# ------------------------------ non_empty_string -----------------------------
+    def test_non_empty_string_accepts_normal_text(self):
+        self.assertEqual(non_empty_string("hello"), (True, None))
 
-def test_non_empty_string():
-    return {
-        "non empty string accepts normal text": {
-            "params": {
-                "value": "hello"
-            },
-            "expected results": (True, None)
-        },
+    def test_non_empty_string_accepts_text_with_spaces_around_it(self):
+        self.assertEqual(non_empty_string("  hello  "), (True, None))
 
-        "non empty string accepts text with spaces around it": {
-            "params": {
-                "value": "  hello  "
-            },
-            "expected results": (True, None)
-        },
+    def test_non_empty_string_rejects_empty_string(self):
+        self.assertEqual(non_empty_string(""), (False, None))
 
-        "non empty string rejects empty string": {
-            "params": {
-                "value": ""
-            },
-            "expected results": (False, None)
-        },
+    def test_non_empty_string_rejects_whitespace_string(self):
+        self.assertEqual(non_empty_string("   "), (False, None))
 
-        "non empty string rejects whitespace string": {
-            "params": {
-                "value": "   "
-            },
-            "expected results": (False, None)
-        },
+    def test_non_empty_string_accepts_numeric_text(self):
+        self.assertEqual(non_empty_string("12345"), (True, None))
 
-        "non empty string accepts numeric text": {
-            "params": {
-                "value": "12345"
-            },
-            "expected results": (True, None)
-        },
-    }
+    # ------------------------------ is_email_or_username ------------------------
 
+    def test_is_email_or_username_valid_email_address(self):
+        self.assertEqual(is_email_or_username("student@example.com"), (True, "email"))
 
-# ------------------------------ is_email_or_username ------------------------
+    def test_is_email_or_username_valid_username_letters_only(self):
+        self.assertEqual(is_email_or_username("studentuser"), (True, "username"))
 
-def test_is_email_or_username():
-    return {
-        "valid email address": {
-            "params": {
-                "value": "student@example.com"
-            },
-            "expected results": (True, "email")
-        },
+    def test_is_email_or_username_valid_username_with_numbers(self):
+        self.assertEqual(is_email_or_username("student123"), (True, "username"))
 
-        "valid username letters only": {
-            "params": {
-                "value": "studentuser"
-            },
-            "expected results": (True, "username")
-        },
+    def test_is_email_or_username_valid_username_with_underscore(self):
+        self.assertEqual(is_email_or_username("student_user"), (True, "username"))
 
-        "valid username with numbers": {
-            "params": {
-                "value": "student123"
-            },
-            "expected results": (True, "username")
-        },
+    def test_is_email_or_username_invalid_username_with_space(self):
+        self.assertEqual(is_email_or_username("student user"), (False, "invalid"))
 
-        "valid username with underscore": {
-            "params": {
-                "value": "student_user"
-            },
-            "expected results": (True, "username")
-        },
+    def test_is_email_or_username_invalid_email_missing_domain(self):
+        self.assertEqual(is_email_or_username("student@"), (False, "invalid"))
 
-        "invalid username with space": {
-            "params": {
-                "value": "student user"
-            },
-            "expected results": (False, "invalid")
-        },
+    def test_is_email_or_username_invalid_email_missing_at_symbol(self):
+        self.assertEqual(is_email_or_username("studentexample.com"), (False, "invalid"))
 
-        "invalid email missing domain": {
-            "params": {
-                "value": "student@"
-            },
-            "expected results": (False, "invalid")
-        },
+    # ------------------------------ is_password_length ---------------------------
 
-        "invalid email missing at symbol": {
-            "params": {
-                "value": "studentexample.com"
-            },
-            "expected results": (False, "invalid")
-        },
-    }
+    def test_is_password_length_valid_password_exactly_eight_characters(self):
+        self.assertTrue(is_password_length("12345678"))
+
+    def test_is_password_length_valid_password_longer_than_eight_characters(self):
+        self.assertTrue(is_password_length("Password123"))
+
+    def test_is_password_length_invalid_password_seven_characters(self):
+        self.assertFalse(is_password_length("1234567"))
+
+    def test_is_password_length_invalid_empty_password(self):
+        self.assertFalse(is_password_length(""))
+
+    def test_is_password_length_valid_password_with_spaces(self):
+        self.assertTrue(is_password_length("pass word"))
+
+    # ------------------------------ validate_passwords_match --------------------
+
+    def test_validate_passwords_match_matching_normal_passwords(self):
+        self.assertTrue(validate_passwords_match("Password123", "Password123"))
+
+    def test_validate_passwords_match_non_matching_passwords(self):
+        self.assertFalse(validate_passwords_match("Password123", "Password456"))
+
+    def test_validate_passwords_match_matching_empty_passwords(self):
+        self.assertTrue(validate_passwords_match("", ""))
+
+    def test_validate_passwords_match_case_sensitive_password_mismatch(self):
+        self.assertFalse(validate_passwords_match("Password123", "password123"))
+
+    def test_validate_passwords_match_space_sensitive_password_mismatch(self):
+        self.assertFalse(validate_passwords_match("Password123", "Password123 "))
 
 
-# ------------------------------ is_valid_password ---------------------------
-
-def test_is_valid_password():
-    return {
-        "valid password exactly eight characters": {
-            "params": {
-                "value": "12345678"
-            },
-            "expected results": True
-        },
-
-        "valid password longer than eight characters": {
-            "params": {
-                "value": "Password123"
-            },
-            "expected results": True
-        },
-
-        "invalid password seven characters": {
-            "params": {
-                "value": "1234567"
-            },
-            "expected results": False
-        },
-
-        "invalid empty password": {
-            "params": {
-                "value": ""
-            },
-            "expected results": False
-        },
-
-        "valid password with spaces": {
-            "params": {
-                "value": "pass word"
-            },
-            "expected results": True
-        },
-    }
-
-
-# ------------------------------ validate_passwords_match --------------------
-
-def test_validate_passwords_match():
-    return {
-        "matching normal passwords": {
-            "params": {
-                "password": "Password123",
-                "confirm_password": "Password123"
-            },
-            "expected results": True
-        },
-
-        "non matching passwords": {
-            "params": {
-                "password": "Password123",
-                "confirm_password": "Password456"
-            },
-            "expected results": False
-        },
-
-        "matching empty passwords": {
-            "params": {
-                "password": "",
-                "confirm_password": ""
-            },
-            "expected results": True
-        },
-
-        "case sensitive password mismatch": {
-            "params": {
-                "password": "Password123",
-                "confirm_password": "password123"
-            },
-            "expected results": False
-        },
-
-        "space sensitive password mismatch": {
-            "params": {
-                "password": "Password123",
-                "confirm_password": "Password123 "
-            },
-            "expected results": False
-        },
-    }
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
