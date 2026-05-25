@@ -6,7 +6,6 @@
 # Contributors:
 # -------------------------------------------------------------------------------
 
-
 import tkinter as tk
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.gui.template_creation.models.template_controller import TemplateController
