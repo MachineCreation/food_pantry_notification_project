@@ -4,7 +4,7 @@
 # 2026-05-23
 # Sources: None
 # Contributors:
-# -------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 import tkinter as tk
 from app.gui.utilities.models.FrameBase import FrameBase
