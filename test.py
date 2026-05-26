@@ -14,4 +14,4 @@ from tests.test_run import main
 # python imports
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
