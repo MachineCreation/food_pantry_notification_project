@@ -5,16 +5,19 @@
 # Sources:
 # Contributors:
 # -------------------------------------------------------------------------------
-# Description: A testing suite for validation utility functions
+# Description: unittest suite for validation utility functions
 # -------------------------------------------------------------------------------
 
-# Local imports
-from app.logic.utilities.validation import \
-    is_email_or_username, \
-    non_empty_string
+import unittest
 
+from app.logic.utilities.validation import (
+    input_string,
+    is_email_or_username,
+    is_password_length,
+    non_empty_string,
+    validate_passwords_match,
+)
 
-# ------------------------------ helper classes -------------------------------
 
 class MockEntry:
     """
@@ -29,7 +32,8 @@ class MockEntry:
         return self.value
 
 
-# ------------------------------ input_string ---------------------------------
+class TestValidation(unittest.TestCase):
+    # ------------------------------ input_string ---------------------------------
 
     def test_input_string_accepts_valid_raw_string(self):
         '''
@@ -88,7 +92,7 @@ class MockEntry:
             (False, "invalid"),
         )
 
-# ------------------------------ non_empty_string -----------------------------
+    # ------------------------------ non_empty_string -----------------------------
 
     def test_non_empty_string_accepts_normal_text(self):
         '''
@@ -120,7 +124,7 @@ class MockEntry:
         '''
         self.assertEqual(non_empty_string("12345"), (True, None))
 
-# ------------------------------ is_email_or_username ------------------------
+    # ------------------------------ is_email_or_username ------------------------
 
     def test_is_email_or_username_valid_email_address(self):
         '''
@@ -196,7 +200,7 @@ class MockEntry:
         '''
         self.assertTrue(is_password_length("pass word"))
 
-# ------------------------------ validate_passwords_match --------------------
+    # ------------------------------ validate_passwords_match --------------------
 
     def test_validate_passwords_match_matching_normal_passwords(self):
         '''

@@ -2,14 +2,15 @@
 # -------------------------------------------------------------------------------
 # filename:NotificationLog.py
 # Author: Justin Crump
-# 2026-05-06
+# 2026-05-26
 # Sources:
 # Contributors:
 # -------------------------------------------------------------------------------
 # Description: GUI for notification log search and review.
 
 # Local Imports
-from app.logic.models.LogRecord import LogRecord
+from app.database.models.LogRecordSQL import LogRecordSQL
+from app.database.models.Database import Database
 
 # Python Imports
 import tkinter as tk
@@ -18,7 +19,6 @@ from tkcalendar import DateEntry
 from tkinter import messagebox
 from datetime import date, datetime, time
 from typing import Any
-from tkinter.ttk import Combobox
 
 class NotificationLog:
     """
@@ -47,6 +47,10 @@ class NotificationLog:
         """
         self.parent = parent
         self.app_context = app_context
+
+
+        # Initializes the database
+        self.repo = LogRecordSQL(Database())
 
         # Main container frame
         self.frame = tk.Frame(parent.root)
@@ -105,27 +109,16 @@ class NotificationLog:
 
         # ---Row 1: Dropdown + Buttons---------
 
-        # Dropdown label
-        sender_label = ttk.Label(input_frame, text="Filter by Sender")
-        sender_label.grid(column=0, row=1, sticky="e", padx=(0,5))
+        # Keyword variable
+        self.keyword_variable = tk.StringVar()
 
-        # Dropdown variable
-        self.sender_variable = tk.StringVar()
+        # Keyword Label
+        keyword_label = ttk.Label(input_frame, text="Keyword Search: ")
+        keyword_label.grid(column=0, row=1, sticky="e", padx=(10,5))
 
-        # Dropdown widget
-        senders = LogRecord.get_unique_senders()
-
-        self.sender_dropdown = ttk.Combobox(
-            input_frame,
-            textvariable=self.sender_variable,
-            values=senders,
-            state="readonly",
-            width=15
-        )
-        self.sender_dropdown.grid(column=1, row=1, sticky="w", padx=(0,15))
-
-        if senders:
-            self.sender_dropdown.current(0)
+        # Keyword Entry
+        self.keyword_entry = ttk.Entry(input_frame, textvariable=self.keyword_variable, width=20)
+        self.keyword_entry.grid(column=1, row=1, sticky="w")
 
         # Clear Button
         clear_button = ttk.Button(input_frame, text="Clear", command=self.clear)
@@ -144,7 +137,7 @@ class NotificationLog:
         tree_frame.rowconfigure(0, weight=1)
 
         # Table setup
-        columns = {
+        self.columns = {
             "date": ("Date/Time", 150),
             "subject": ("Subject", 150),
             "message": ("Message", 400),
@@ -163,11 +156,15 @@ class NotificationLog:
             show="headings"
         )
 
-        for col, (title, width) in columns.items():
-            self.tree.heading(col, text=title)
+        # Configure each Treeview column and attach sort handler
+        for col, (title, width) in self.columns.items():
+            self.tree.heading(col, text=title, command=lambda c=col: self.sort_column(c, False))
             self.tree.column(col, width=width)
 
+        # Place the treeview in the layout
         self.tree.grid(column=0, row=0, sticky="nsew")
+
+        # Bind row-selection events
         self.tree.bind("<<TreeviewSelect>>", self.on_row_select)
 
         # Vertical Scrollbar
@@ -202,14 +199,16 @@ class NotificationLog:
 
     def clear(self) -> None:
         """
-        Reset date filters, clear the results table, and clear the message preview area
+        Reset date filters, clear the results table, clears sort order,
+        and clear the message preview area
         """
         default = date.today()
         self.startdate_entry.set_date(default)
         self.enddate_entry.set_date(default)
         self.tree.delete(*self.tree.get_children())
         self.clear_message_display()
-        self.sender_dropdown.current(0)
+        self.keyword_entry.delete(0,tk.END)
+        self.reset_sort_indicators()
 
     def back(self) -> None:
         """
@@ -222,21 +221,27 @@ class NotificationLog:
         """
         Displays notification contents when user clicks on record in tree view
         """
+        # Get all selected row IDs; exit early if nothing is selected
         selected = self.tree.selection()
         if  not selected:
             return
 
         blocks = []
 
+        # Extract column values for each selected row and format them
         for item_id in selected:
             values = self.tree.item(item_id, "values")
+
+            # Build a readable message block for the preview panel
             message_text = (f"Sender: {values[3]} \t Date Sent: {values[0]} \t Received By: {values[4]} \n"
                         f"Subject: {values[1]} \n"
                         f"Message: {values[2]}")
             blocks.append(message_text)
 
+        # Combine multiple selected messages into one display string
         final_text = "\n\n".join(blocks)
 
+        # Update the message preview text box
         self.mess_display.config(state="normal")
         self.mess_display.delete("1.0", tk.END)
         self.mess_display.insert(tk.END, final_text)
@@ -246,36 +251,42 @@ class NotificationLog:
         """
         Search the database for records
         """
+        # Build datetime boundaries using the selected start/end dates
         start = datetime.combine(self.startdate_entry.get_date(), time.min)
         end = datetime.combine(self.enddate_entry.get_date(), time.max)
-        sender = self.sender_variable.get()
+        keyword = self.keyword_variable.get()
 
+        # Prevent invalid date ranges from being submitted
         if start > end:
             messagebox.showerror("Invalid Date Range", "End date must be after start date")
             return
 
+        # Clear any previous results and message preview
         self.tree.delete(*self.tree.get_children())
         self.clear_message_display()
 
+        # Query hte database through the repository layer
         try:
-            all_data = LogRecord.search(start, end, sender)
+            all_data = self.repo.search(start, end, keyword)
         except Exception as e:
             messagebox.showerror("Internal Error", "This feature cannot run on your "
                                                    "computer due to a missing or incompatible driver.")
             return
 
+        # Show a placeholder row if no results were found
         if not all_data:
             self.tree.insert("",
                              tk.END,
                              values=("", "", "No Results", "", "")
                              )
 
+        # Insert each record into the Treeview
         for data in all_data:
             self.tree.insert(
                 "",
                 tk.END,
                 values=(
-                    data.get_date(),
+                    self.format_dt(data.get_date()),
                     data.get_subject(),
                     data.get_message(),
                     data.get_sender(),
@@ -287,9 +298,13 @@ class NotificationLog:
         """
         Retrieve and display all log records in the table.
         """
+
+        # Reset filters and clear the UI before loading all records
         self.clear()
+
+        # Retrieve all records from the repository
         try:
-            all_data = LogRecord.display_all()
+            all_data = self.repo.display_all()
         except Exception as e:
             messagebox.showerror(
                 "Internal Error",
@@ -297,12 +312,13 @@ class NotificationLog:
             )
             return
 
+        # Populate the Treeview with all available records
         for data in all_data:
             self.tree.insert(
                 "",
                 tk.END,
                 values=(
-                    data.get_date(),
+                    self.format_dt(data.get_date()),
                     data.get_subject(),
                     data.get_message(),
                     data.get_sender(),
@@ -317,3 +333,62 @@ class NotificationLog:
         self.mess_display.config(state="normal")
         self.mess_display.delete("1.0", tk.END)
         self.mess_display.config(state="disabled")
+
+    def format_dt(self, dt: datetime | str) -> str:
+        """
+        Convert a datetime or ISO-formatted string into a consistent
+        mm-dd-yyyy HH:MM:SS display format. IF parsing fails, return
+        the original value unchanged.
+        """
+        if isinstance(dt, datetime):
+            return dt.strftime("%m-%d-%Y %H:%M:%S")
+        try:
+            parsed = datetime.fromisoformat(dt)
+            return parsed.strftime("%m-%d-%Y %H:%M:%S")
+        except:
+            return dt
+
+    def sort_column(self, column: str, reverse: bool) -> None:
+        """
+        Sorts the Treeview rows by the given column.
+        Sorting is case-insensitive for strings.
+        Updates column headers with sort indicators.
+        """
+
+        # Extract (value, row_id) pairs for sorting
+        items = [(self.tree.set(k, column), k) for k in self.tree.get_children("")]
+
+        # Sort values, normalizing strings to lowercase for consistent ordering
+        items.sort(
+            key=lambda t: t[0].lower() if isinstance(t[0], str) else t[0],
+            reverse=reverse)
+
+        # Reorder rows in the Treeview based on the sorted order
+        for index, (_, row_id) in enumerate(items):
+            self.tree.move(row_id, "", index)
+
+        # Update the clicked column header with a sort arrow
+        arrow = " ▲" if not reverse else " ▼"
+        title = self.columns[column][0]
+        self.tree.heading(column, text=title + arrow, command=lambda: self.sort_column(column, not reverse))
+
+        # Reset all other column headers to their default state
+        for other_column in self.columns:
+            if other_column != column:
+                title = self.columns[other_column][0]
+                self.tree.heading(
+                    other_column,
+                    text=title,
+                    command=lambda c=other_column: self.sort_column(c, False))
+        self.tree.heading(column, command=lambda: self.sort_column(column, not reverse))
+
+    def reset_sort_indicators(self):
+        """
+        Restore all column headers to their default text and remove
+        any sort arrows or active sort state
+        """
+        for col, (title, _) in self.columns.items():
+            self.tree.heading(col,
+                              text=title,
+                              command=lambda c=col: self.sort_column(c, False))
+
