@@ -91,7 +91,7 @@ class Notifier():
 # ----------For development and testing purposes only---------
 # ----------Remove for production ----------------------------
             # stubbed email list for testing
-            recipients = [self.__dev_email]
+            # recipients = [self.__dev_email]
 # ----------END ----------------------------------------------
 
             # send emails
