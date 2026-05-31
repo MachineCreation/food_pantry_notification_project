@@ -11,7 +11,8 @@
 # Local imports
 
 # python imports
-from typing import Tuple
+from typing import Tuple, List
+from datetime import datetime
 
 
 class User():
@@ -25,11 +26,17 @@ class User():
             self,
             username: str,
             user_id: int,
-            role: str
+            role: str,
+            last_login: datetime | None = None,
+            notification_type: str | None = None,
+            dashboard_view: List[str] | None = None
             ):
         self.__username = username
         self.__user__id = user_id
         self.__role = role
+        self.__last_login = last_login
+        self.__notification_type = notification_type
+        self.__dashboard_view = dashboard_view
 
     # --------------------
     def log_out(self, app_context: dict) -> None:
@@ -65,6 +72,43 @@ class User():
         :return: the user role
         '''
         return self.__role
+    
+    @property
+    def last_login(self) -> datetime | None:
+        '''
+        get the last login time
+        :return: the last login time
+        '''
+        return self.__last_login
+    
+    @property
+    def notification_type(self) -> str | None:
+        '''
+        get the user's notification type
+        :return: the user's notification type
+        '''
+        return self.__notification_type
+    
+    @property
+    def dashboard_view(self) -> List[str] | None:
+        '''
+        get the user's dashboard view
+        :return: the user's dashboard view
+        '''
+        return self.__dashboard_view
+    
+# --------------------------------- METHODS --------------------------------
+    def set_dashboard_types(
+            self,
+            database: object,
+    ) -> None:
+        '''
+        sets dashboard_view, last_login, and notification_type properties
+        from the database
+        :param database: the database object to get the data from
+        :return: None
+        '''
+        
 
 # --------------------------------- STATIC ---------------------------------
     @staticmethod

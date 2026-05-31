@@ -274,6 +274,94 @@ class Database:
         except pymssql.Error as e:
             print(f'SQL Error: {e}')
             return False, ('none', 'none')
+        
+    # --------------------
+    def get_user_settings(
+            self,
+            user_id: int
+            ) -> Tuple[bool, dict | None]:
+        """
+        Get user settings and dashboard notifications for a user.
+
+        dashboard_view is stored as a comma-separated list of notification_ids.
+        The returned settings dict includes dashboard_notifications as a list
+        of notification objects/dicts.
+
+        :param user_id: int user id to get settings for
+        :return: (success, settings dict or None)
+        """
+
+        self.ensure_connection()
+
+        get_user_settings_query = """
+        SELECT
+            us.notification_type,
+            us.dashboard_view,
+            us.last_login,
+
+            n.notification_id,
+            n.sender_id,
+            n.template_id,
+            n.subject,
+            n.body_text,
+            n.num_recip,
+            n.image_id,
+            n.date_time
+        FROM user_settings us
+        CROSS APPLY STRING_SPLIT(us.dashboard_view, ',') s
+        LEFT JOIN NOTIFICATIONS n
+            ON n.notification_id = TRY_CAST(TRIM(s.value) AS INT)
+        WHERE us.user_id = %s
+        """
+
+        try:
+            result = self.execute_query(
+                get_user_settings_query,
+                (user_id,),
+                fetch_all=True
+            )
+
+            if not result:
+                return False, None
+
+            settings = {
+                "notification_type": result[0][0],
+                "dashboard_view": (
+                    [note.strip() for note in result[0][1].split(",")]
+                    if result[0][1]
+                    else []
+                ),
+                "last_login": result[0][2],
+                "dashboard_notifications": []
+            }
+
+            for row in result:
+                notification_id = row[3]
+
+                # This happens when dashboard_view is NULL/empty
+                # or contains an invalid notification_id.
+                if notification_id is None:
+                    continue
+
+                notification = {
+                    "notification_id": row[3],
+                    "sender_id": row[4],
+                    "template_id": row[5],
+                    "subject": row[6],
+                    "body_text": row[7],
+                    "num_recip": row[8],
+                    "image_id": row[9],
+                    "date_time": row[10]
+                }
+
+                settings["dashboard_notifications"].append(notification)
+
+            return True, settings
+
+        except Exception as e:
+            print(f"Error getting user settings: {e}")
+            return False, None
+
 
 # ------------------------ notification log methods ---------------------------
     def get_recipients(self) -> List[str]:

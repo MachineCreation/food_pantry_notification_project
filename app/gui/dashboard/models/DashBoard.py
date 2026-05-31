@@ -70,13 +70,8 @@ class DashBoard(FrameBase):
                 "send_notification_button",
                 self._frame
             )
-        self.__notification_log_button: ttk.Button = \
-            self._builder.get_object(
-                "notification_log_button",
-                self._frame
-            )
 
-        if role == 1:
+        if role in [1, 0]:
             self.__send_notification_button.destroy()
             self.__notification_log_button.destroy()
 
@@ -86,11 +81,6 @@ class DashBoard(FrameBase):
                     "send_notification"
                     )
                 )
-            self.__notification_log_button.configure(
-                command=lambda: self.send_to_route(
-                    "notification_log"
-                    )
-            )
 
     def configure_admin_buttons(self, role):
         '''
@@ -101,15 +91,21 @@ class DashBoard(FrameBase):
                 "create_template_button",
                 self._frame
             )
-        self.__manage_users_button: ttk.Button = \
+        self.__notification_log_button: ttk.Button = \
             self._builder.get_object(
-                "manage_users_button",
+                "notification_log_button",
+                self._frame
+            )
+        self.__manage_settings_button: ttk.Button = \
+            self._builder.get_object(
+                "manage_settings_button",
                 self._frame
             )
 
         if role != 3:
             self.__create_template_button.destroy()
-            self.__manage_users_button.destroy()
+            self.__manage_settings_button.destroy()
+            self.__notification_log_button.destroy()
 
         else:
             self.__create_template_button.configure(
@@ -117,9 +113,14 @@ class DashBoard(FrameBase):
                     "create_template"
                     )
             )
-            self.__manage_users_button.configure(
+            self.__manage_settings_button.configure(
                 command=lambda: self.send_to_route(
-                    "manage_users"
+                    "manage_settings"
+                    )
+            )
+            self.__notification_log_button.configure(
+                command=lambda: self.send_to_route(
+                    "notification_log"
                     )
             )
 

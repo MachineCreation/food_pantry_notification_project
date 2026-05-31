@@ -131,7 +131,7 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
-                      <property name="row">0</property>
+                      <property name="row">1</property>
                       <property name="sticky">e</property>
                     </layout>
                   </object>
@@ -142,19 +142,19 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
-                      <property name="row">2</property>
-                      <property name="sticky">e</property>
+                      <property name="row">3</property>
+                      <property name="sticky">ew</property>
                     </layout>
                   </object>
                 </child>
                 <child>
-                  <object class="ttk.Button" id="manage_users_button" named="True">
-                    <property name="text" translatable="yes">Manage Users</property>
+                  <object class="ttk.Button" id="manage_settings_button" named="True">
+                    <property name="text" translatable="yes">Settings</property>
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
-                      <property name="row">3</property>
-                      <property name="sticky">e</property>
+                      <property name="row">0</property>
+                      <property name="sticky">ew</property>
                     </layout>
                   </object>
                 </child>
@@ -164,8 +164,8 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
-                      <property name="row">1</property>
-                      <property name="sticky">e</property>
+                      <property name="row">2</property>
+                      <property name="sticky">ew</property>
                     </layout>
                   </object>
                 </child>
