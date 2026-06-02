@@ -148,7 +148,7 @@ class TemplateView:
 
     def set_template_name_editable(self):
         """
-
+        makes the template name field typeable again
         """
         widget = self.builder.get_object("entry1")
         widget.config(state="normal")
