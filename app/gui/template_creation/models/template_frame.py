@@ -1,5 +1,5 @@
 # -------------------------------------------------------------------------------
-# filename: template_controller.py
+# filename: template_frame.py
 # Author: Lloyd Truong
 # 2026-05-23
 # Sources: None

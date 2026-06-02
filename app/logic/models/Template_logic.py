@@ -19,7 +19,7 @@ class TemplateLogic:
 
     def get_existing_template_names(self):
         """
-        Returns all template names from the TEMPLATE table.
+        returns all template names from the TEMPLATE table
 
         :return: list of template name strings
         """
@@ -108,3 +108,16 @@ class TemplateLogic:
             template_id = new_row[0]
 
         return template_id
+
+    def delete_template(self, template_name):
+        """
+        deletes a template by template name
+        """
+        self.__db.execute_query(
+            """
+            DELETE FROM TEMPLATE
+            WHERE template_name = %s;
+            """,
+            (template_name,),
+            fetch_all=False
+        )

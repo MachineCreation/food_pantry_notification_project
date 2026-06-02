@@ -25,6 +25,9 @@ class TemplateController:
         self.view = TemplateView(parent, self)
         self.db = self.app_context.get("database")
         self.logic = TemplateLogic(self.db)
+        self.editing_existing_template = False
+        self.view.set_title_text("Create Notification Template")
+        self.view.set_save_button_text("Save Template")
 
         default_tags = [
             "Date",
@@ -90,8 +93,14 @@ class TemplateController:
     def on_clear(self, event=None):
         """
         Clears all form fields in the Template Creation screen.
+        Unlock template name
+        Reset the page for creating new template
         """
         self.view.clear_form()
+        self.editing_existing_template = False
+        self.view.set_template_name_editable()
+        self.view.set_title_text("Create Notification Template")
+        self.view.set_save_button_text("Save Template")
 
     def on_back(self, event=None):
         """
@@ -119,10 +128,16 @@ class TemplateController:
 
             template_name, subject, tags, body_text = row
 
+            self.editing_existing_template = True
+
             self.view.set_template_name(template_name)
             self.view.set_subject(subject)
             self.view.set_tag_value(tags)
             self.view.set_message(body_text if body_text else "")
+
+            self.view.set_template_name_readonly()
+            self.view.set_title_text("Edit Notification Template")
+            self.view.set_save_button_text("Update Template")
 
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to load template: {e}")
@@ -135,3 +150,32 @@ class TemplateController:
         if selected_tag.strip():
             self.view.insert_tag_into_message(selected_tag)
 
+    def on_delete_template(self, event=None):
+        """
+        deletes the selected existing template
+        """
+        selected_name = self.view.get_selected_existing_template()
+        if not selected_name.strip():
+            messagebox.showerror("Delete Error", "Please select a template first.")
+            return
+
+        confirm = messagebox.askyesno(
+            "Confirm Delete",
+            f"Are you sure you want to delete template '{selected_name}'?"
+        )
+        if not confirm:
+            return
+
+        try:
+            self.logic.delete_template(selected_name)
+            messagebox.showinfo("Success", f"Template '{selected_name}' deleted successfully!")
+
+            self.view.clear_form()
+            self.editing_existing_template = False
+            self.view.set_template_name_editable()
+            self.view.set_title_text("Create Notification Template")
+            self.view.set_save_button_text("Save Template")
+            self.load_existing_templates()
+
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Failed to delete template: {e}")
