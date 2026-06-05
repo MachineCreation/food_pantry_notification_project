@@ -28,6 +28,7 @@ def send_to_route(route: str, gui: Callable) -> None:
         SendNotification
     from app.gui.notification_log.NotificationLog import NotificationLog
     from app.gui.template_creation.models.template_frame import TemplateFrame
+    from app.gui.dashboard.models.MessageSettings import MessageSettings
 
     if not isinstance(gui, GUI):
         raise TypeError("Expected a GUI instance")
@@ -42,8 +43,8 @@ def send_to_route(route: str, gui: Callable) -> None:
         "notification_log": NotificationLog,
         "send_notification": SendNotification,
         "create_template": TemplateFrame,
-        # "manage_users": ,
-        }
+        "message_settings": MessageSettings,
+    }
 
     try:
         route_class = routes[route]

@@ -9,6 +9,7 @@
 # Description: class for user data and authentication
 
 # Local imports
+from app.logic.models.Notification import Notification
 
 # python imports
 from typing import Tuple, List
@@ -29,14 +30,14 @@ class User():
             role: str,
             last_login: datetime | None = None,
             notification_type: str | None = None,
-            dashboard_view: List[str] | None = None
+            dashboard_notifications: List[Notification] | None = None
             ):
         self.__username = username
         self.__user__id = user_id
         self.__role = role
         self.__last_login = last_login
         self.__notification_type = notification_type
-        self.__dashboard_view = dashboard_view
+        self.__dashboard_notifications = dashboard_notifications
 
     # --------------------
     def log_out(self, app_context: dict) -> None:
@@ -56,7 +57,7 @@ class User():
         :return: the username
         '''
         return self.__username
-    
+
     @property
     def user_id(self) -> int:
         '''
@@ -72,7 +73,7 @@ class User():
         :return: the user role
         '''
         return self.__role
-    
+
     @property
     def last_login(self) -> datetime | None:
         '''
@@ -80,7 +81,7 @@ class User():
         :return: the last login time
         '''
         return self.__last_login
-    
+
     @property
     def notification_type(self) -> str | None:
         '''
@@ -88,27 +89,93 @@ class User():
         :return: the user's notification type
         '''
         return self.__notification_type
-    
+
     @property
-    def dashboard_view(self) -> List[str] | None:
+    def dashboard_notifications(self) -> List[Notification] | None:
         '''
-        get the user's dashboard view
-        :return: the user's dashboard view
+        get the user's dashboard notifications
+        :return: the user's dashboard notifications
         '''
-        return self.__dashboard_view
-    
+        return self.__dashboard_notifications
+
+# --------------------------------- setters ---------------------------------
+    @last_login.setter
+    def last_login(self, value: datetime) -> None:
+        '''
+        set the last login time
+        :param value: the last login time to set
+        :return: None
+        '''
+        self.__last_login = value
+
+    @notification_type.setter
+    def notification_type(self, value: str) -> None:
+        '''
+        set the user's notification type
+        :param value: the notification type to set
+        :return: None
+        '''
+        self.__notification_type = value
+
+    @dashboard_notifications.setter
+    def dashboard_notifications(self, value: List[Notification]) -> None:
+        '''
+        set the user's dashboard notifications
+        :param value: the dashboard notifications to set
+        :return: None
+        '''
+        self.__dashboard_notifications = value
+
 # --------------------------------- METHODS --------------------------------
     def set_dashboard_types(
             self,
             database: object,
     ) -> None:
         '''
-        sets dashboard_view, last_login, and notification_type properties
+        sets dashboard_notifications, last_login, and notification_type
+            properties
         from the database
         :param database: the database object to get the data from
         :return: None
         '''
-        
+        from app.database.models.Database import Database
+        db: Database = database
+
+        try:
+            ok, user_info = db.get_user_settings(self.user_id)
+            if ok and user_info:
+                self.dashboard_notifications = \
+                    user_info['dashboard_notifications']
+                self.last_login = user_info['last_login']
+                self.notification_type = user_info['notification_type']
+        except ValueError as e:
+            print(f"Error setting dashboard types: {e}")
+
+    # --------------------
+    def remove_dashboard_notifications(
+            self,
+            selected_notifications: set[int],
+            database: object
+    ) -> None:
+        '''
+        removes a notification from the user's dashboard notifications
+        :param selected_notifications: the ids of the notifications to remove
+        :return: None
+        '''
+
+        from app.database.models.Database import Database
+        db: Database = database
+
+        success = db.remove_user_dashboard_notifications(
+            self.user_id,
+            selected_notifications
+        )
+
+        if success:
+            self.dashboard_notifications = [
+                notification for notification in self.dashboard_notifications
+                if notification.notification_id not in selected_notifications
+            ]
 
 # --------------------------------- STATIC ---------------------------------
     @staticmethod
@@ -164,7 +231,7 @@ class User():
 
         if database:
             signed_up = database.sign_up_user(
-                username.strip().lower().title(),
+                username.strip().lower(),
                 password,
                 email.strip().lower(),
                 first_name.strip().lower().title(),
@@ -181,7 +248,7 @@ class User():
     @staticmethod
     def get_notes(app_context: dict) -> Tuple[str]:
         '''
-
+        Helper function deprecated in favor of set_dashboard_types.
         '''
         from app.database.models.Database import Database
         database: Database = app_context['database']
@@ -190,3 +257,20 @@ class User():
         if valid:
             return result
         return ('error', 'notes now found')
+
+    # --------------------
+    def update_last_login(
+            self,
+            database
+    ) -> None:
+        '''
+        update the last_login field in user
+        '''
+        from app.database.models.Database import Database
+        db: Database = database
+
+        date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+        db.update_last_login(
+            self.user_id,
+            date
+        )

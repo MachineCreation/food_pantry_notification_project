@@ -13,6 +13,7 @@ from app.logic.models.LogRecord import LogRecord
 from datetime import datetime
 from typing import List
 
+
 class LogRecordSQL:
     """
     Repository class responsible for retrieving notification log records

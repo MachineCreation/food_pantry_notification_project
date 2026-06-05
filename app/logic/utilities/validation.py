@@ -148,3 +148,15 @@ def validate_passwords_match(password: str, confirm_password: str) -> \
     :return: True if valid, False otherwise
     '''
     return password == confirm_password
+
+# --------------------
+def validate_phone_number(phone_number: str) -> bool:
+    '''
+    validation function for phone number input only numbers, no spaces or special characters
+    :param phone_number: the string to validate
+    :return: True if valid, False otherwise
+    '''
+    phone_pattern = r'^\d{10}$'
+    if bool(re.match(phone_pattern, phone_number)) and len(phone_number) == 10:
+        return True
+    return False

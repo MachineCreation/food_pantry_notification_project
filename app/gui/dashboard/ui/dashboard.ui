@@ -105,7 +105,7 @@
               <property type="col" id="2" name="weight">1</property>
               <property type="row" id="0" name="weight">2</property>
               <property type="row" id="1" name="minsize">1</property>
-              <property type="row" id="1" name="weight">1</property>
+              <property type="row" id="1" name="weight">2</property>
             </containerlayout>
             <child>
               <object class="ttk.Frame" id="frame4">
@@ -116,7 +116,7 @@
                   <property name="ipadx">10</property>
                   <property name="padx">10</property>
                   <property name="row">0</property>
-                  <property name="sticky">nsew</property>
+                  <property name="sticky">ew</property>
                 </layout>
                 <containerlayout manager="grid">
                   <property name="anchor">e</property>
@@ -131,6 +131,7 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
+                      <property name="pady">5</property>
                       <property name="row">1</property>
                       <property name="sticky">e</property>
                     </layout>
@@ -142,6 +143,7 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
+                      <property name="pady">5</property>
                       <property name="row">3</property>
                       <property name="sticky">ew</property>
                     </layout>
@@ -153,6 +155,7 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
+                      <property name="pady">5</property>
                       <property name="row">0</property>
                       <property name="sticky">ew</property>
                     </layout>
@@ -164,6 +167,7 @@
                     <layout manager="grid">
                       <property name="column">0</property>
                       <property name="padx">5</property>
+                      <property name="pady">5</property>
                       <property name="row">2</property>
                       <property name="sticky">ew</property>
                     </layout>
@@ -232,9 +236,52 @@ There is more here when you scroll</property>
                 <property name="width">200</property>
                 <layout manager="grid">
                   <property name="column">2</property>
+                  <property name="ipadx">10</property>
+                  <property name="padx">10</property>
                   <property name="row">1</property>
-                  <property name="sticky">nsew</property>
+                  <property name="sticky">ew</property>
                 </layout>
+                <containerlayout manager="grid">
+                  <property name="anchor">e</property>
+                  <property type="row" id="0" name="weight">1</property>
+                  <property type="row" id="1" name="weight">1</property>
+                </containerlayout>
+                <child>
+                  <object class="ttk.Button" id="clear_selection_button" named="True">
+                    <property name="text" translatable="yes">Clear Selection</property>
+                    <layout manager="grid">
+                      <property name="column">0</property>
+                      <property name="padx">5</property>
+                      <property name="pady">5</property>
+                      <property name="row">0</property>
+                      <property name="sticky">ew</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Button" id="remove_notification_button" named="True">
+                    <property name="text" translatable="yes">Remove Notification</property>
+                    <layout manager="grid">
+                      <property name="column">0</property>
+                      <property name="padx">5</property>
+                      <property name="pady">5</property>
+                      <property name="row">1</property>
+                      <property name="sticky">ew</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="ttk.Button" id="update_notifications_button" named="True">
+                    <property name="text" translatable="yes">Update Notifications</property>
+                    <layout manager="grid">
+                      <property name="column">0</property>
+                      <property name="padx">5</property>
+                      <property name="pady">5</property>
+                      <property name="row">2</property>
+                      <property name="sticky">ew</property>
+                    </layout>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
