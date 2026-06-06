@@ -32,6 +32,7 @@ class MessageSettings(FrameBase):
 
         self.configure_buttons()
         self.configure_fields()
+        self.configure_verification_feature()
 
     # -------------------- methods --------------------
     def configure_buttons(self):
@@ -86,6 +87,43 @@ class MessageSettings(FrameBase):
         )
 
     # --------------------
+    def configure_verification_feature(self):
+        '''
+        configure the verification feature for the message settings frame
+        '''
+
+        # verification code button
+        self.__send_verification_button: ttk.Button = \
+            self._builder.get_object("send_code_button")
+        # self.__send_verification_button.configure(
+        #     command=self.send_verification
+        # )
+        self.__send_verification_button.grid_remove()
+
+        code_style = ttk.Style()
+        code_style.configure(
+            "Verification.TLabelframe",
+            background="green",
+            foreground="lightgreen"
+        )
+        code_style.configure(
+            "Verification.TLabelframe.Label",
+            font=("Arial", 12)
+        )
+
+        # verification code label frame
+        self.__verification_label_frame: ttk.Labelframe = \
+            self._builder.get_object("verification_label_frame")
+        self.__verification_label_frame.configure(
+            style="Verification.TLabelframe"
+        )
+        self.__verification_label_frame.grid_remove()
+
+        # verification code entry
+        self.__verification_code_entry: ttk.Entry = \
+            self._builder.get_object("verification_code_entry")
+
+    # --------------------
     def validate_phone_number(self, phone_number: str):
         '''
         validate the phone number input
@@ -93,7 +131,10 @@ class MessageSettings(FrameBase):
         valid = validate_phone_number(phone_number)
         if not valid:
             self.__phone_number_entry.delete(0, 'end')
-            showwarning("Invalid Phone Number", f"Invalid phone number: {phone_number}")
+            showwarning(
+                "Invalid Phone Number",
+                f"Invalid phone number: {phone_number}"
+            )
         else:
             self.__phone_number_entry.configure(foreground="black")
             self.__phone_number_entry.configure(state="disabled")
@@ -107,9 +148,13 @@ class MessageSettings(FrameBase):
         selected_type = self.__message_type_entry.get()
         if selected_type in ["SMS", "Both"]:
             self.__phone_number_entry.configure(state="normal")
+            self.__send_verification_button.grid()
+            self.__verification_label_frame.grid()
         else:
             self.__phone_number_entry.configure(state="disabled")
             self.__phone_number_entry.delete(0, 'end')
+            self.__send_verification_button.grid_remove()
+            self.__verification_label_frame.grid_remove()
 
     # --------------------
     def save_settings(self):
