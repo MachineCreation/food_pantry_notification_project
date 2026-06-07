@@ -343,7 +343,8 @@ class Database:
             )
 
         except pymssql.Error as e:
-            print(f'Error on database.set_user_settings: {e.with_traceback(None)}')
+            print('Error on database.set_user_settings: '
+                  f'{e.with_traceback(None)}')
 
     # --------------------
     def get_user_settings(
@@ -441,6 +442,37 @@ class Database:
         except pymssql.Error as error:
             print(f"Error getting user settings: {error}")
             return False, None
+        
+    # --------------------
+    def add_phone_number(
+            self,
+            user_id: int,
+            phone_number: str
+    ) -> bool:
+        '''
+        add a phone number to the user's account for sms notifications
+        :param user_id: int user id to add phone number for
+        :param phone_number: str phone number to add
+        :return: bool indicating success or failure of the operation
+        '''
+
+        add_phone_number_query = '''
+        UPDATE 
+        SET phone_number = %s
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                add_phone_number_query,
+                (phone_number, user_id),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error adding phone number: {error}")
+            return False
 
     # --------------------
     def remove_user_dashboard_notifications(
@@ -474,6 +506,35 @@ class Database:
 
         except pymssql.Error as error:
             print(f"Error removing dashboard notifications: {error}")
+            return False
+        
+    # --------------------
+    def lock_account(
+            self,
+            user_id: int
+    ) -> bool:
+        '''
+        lock the user's account by setting their role to 0
+        :param user_id: int user id to lock
+        :return: bool indicating success or failure of the operation
+        '''
+
+        lock_account_query = '''
+        UPDATE USERS
+        SET role_id = 0
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                lock_account_query,
+                (user_id,),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error locking account: {error}")
             return False
 
 # ------------------------ notification log methods ---------------------------

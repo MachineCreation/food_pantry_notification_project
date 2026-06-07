@@ -18,6 +18,7 @@ from datetime import datetime
 from email.message import EmailMessage
 import smtplib
 import markdown
+import requests
 
 
 class Notifier():
@@ -180,3 +181,30 @@ class Notifier():
 
         self.__connection.send_message(msg)
         del msg
+
+# --------------------------------- STATIC -------------------------------
+    @staticmethod
+    def send_SMS_otp(
+            recipient: List[int, int]
+    ) -> str:
+        '''
+        send sms messages to listed recipients using textbelt API
+        '''
+
+        key = env.TEXTBELT_KEY
+        # send sms via textbelt API
+        try:
+            otp_request = requests.post('https://textbelt.com/otp/generate', {
+                'phone': '5033285142',
+                'userid': 'test_user',
+                'key': key,
+            })
+            otp = otp_request.json().get('otp')
+            if not otp:
+                raise ValueError('OTP not generated')
+        except (ValueError or requests.RequestException) as e:
+            print(f'{e.__str__}\n'
+                  'Error on Notifier.send_SMS_otp()\n')
+            return None
+
+        return otp

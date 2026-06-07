@@ -14,7 +14,7 @@ from app.database.models.Database import Database
 from app.database.models.Notifier import Notifier
 
 # python imports
-from typing import Tuple
+from typing import List, Tuple
 from datetime import datetime
 
 
@@ -198,3 +198,20 @@ class Notification():
                   'time for some debugging, lucky you!\n'
                   f'{e.__str__}')
             return False
+
+    # --------------------------------- STATIC -------------------------------
+    @staticmethod
+    def send_sms_otp(
+            recipient: List[int, int]
+    ) -> str:
+        '''
+        send sms otp messages to listed recipients using textbelt API
+        :param recipient: a list containing recipient ids and their phone
+            number
+        :return: an otp
+        '''
+
+        otp = Notifier.send_SMS_otp(
+            recipient
+        )
+        return otp

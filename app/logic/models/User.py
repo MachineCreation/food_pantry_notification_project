@@ -27,7 +27,7 @@ class User():
             self,
             username: str,
             user_id: int,
-            role: str,
+            role: int,
             last_login: datetime | None = None,
             notification_type: str | None = None,
             dashboard_notifications: List[Notification] | None = None
@@ -177,6 +177,48 @@ class User():
                 if notification.notification_id not in selected_notifications
             ]
 
+    # --------------------
+    def add_phone_number(
+            self,
+            phone_number: str,
+            database: object
+    ) -> None:
+        '''
+        adds a phone number to the user's account
+        :param phone_number: the phone number to add
+        :param database: the database object to update the account in
+        :return: None
+        '''
+        from app.database.models.Database import Database
+        db: Database = database
+
+        success = db.add_user_phone_number(self.user_id, phone_number)
+
+        if success:
+            print("Phone number added successfully.")
+        else:
+            print("Error adding phone number.")
+            
+    # --------------------
+    def lock_account(
+            self,
+            database: object
+    ) -> None:
+        '''
+        locks the user's account
+        :param database: the database object to update the account in
+        :return: None
+        '''
+        from app.database.models.Database import Database
+        db: Database = database
+
+        success = db.lock_user_account(self.user_id)
+
+        if success:
+            print("Account locked successfully.")
+        else:
+            print("Error locking account.")
+
 # --------------------------------- STATIC ---------------------------------
     @staticmethod
     def authenticate(
@@ -202,7 +244,7 @@ class User():
                                             id_type
                                            )
 
-            if authenticated:
+            if authenticated and user_role != 0:
                 app_context['user'] = User(username, user_id, user_role)
                 return authenticated
 
