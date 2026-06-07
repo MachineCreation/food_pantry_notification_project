@@ -4,7 +4,7 @@
 # Author: Joseph Egan
 # 2026-05-08
 # Sources:
-# Contributors:
+# Contributors: Justin Crump - Notification Log return-route functionality
 # -------------------------------------------------------------------------------
 # Description: stand in class for send notification frame
 
@@ -38,6 +38,11 @@ class SendNotification(FrameBase):
             list(Template.all_templates().keys())
         self.register_buttons(self.__buttons)
         self.register_entries()
+
+        # Load notification data when arriving from the Notification Log resend feature
+        resend_data = self._app_context.pop("resend_notification", None)
+        if resend_data:
+            self.load_notification_data(resend_data)
 
     # --------------------------------- methods -------------------------------
     def send_notification(self) -> None:
@@ -190,6 +195,40 @@ class SendNotification(FrameBase):
             font=("Arial", 12)
             )
 
+    def load_notification_data(self, data: dict[str, str]) -> None:
+        """
+        Populate the subject and message fields using notification data passed
+        from the Notification Log page
+
+        Parameters:
+            data (dict[str, str]): Dictionary containing notification subject and message text
+        """
+
+        # Load subject into the subject entry field
+        self.__subject_entry.configure(state="normal")
+        self.__subject_entry.delete(0, tkinter.END)
+        self.__subject_entry.insert(0, data['subject'])
+
+        # Load message into the message text area
+        self.__message_entry.configure(state="normal")
+        self.__message_entry.delete(1.0, tkinter.END)
+        self.__message_entry.insert(1.0, data['message'])
+
+    def back(self) -> None:
+        """
+        Navigate back to the page that launched the Send Notification screen. If no
+        return route exists, return to the dashboard.
+
+        The return route is stored in the shared application context when a notification
+        is opened from the Notification Log page.
+        """
+
+        # Retrieve and remove the stored return route. Default to the dashboard if no route provided
+        route = self._app_context.pop("send_notification_return_route", "dashboard")
+
+        # Navigate to the selected route
+        self.send_to_route(route)
+
     # ------------------------------- properties ------------------------------
     @property
     def __buttons(self) -> \
@@ -200,7 +239,7 @@ class SendNotification(FrameBase):
         return {
             "back_button": {
                 "commands": {
-                    self.send_to_route: ["dashboard"]
+                    self.back: []
                 },
                 "styles": []
             },
