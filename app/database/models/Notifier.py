@@ -18,6 +18,7 @@ from datetime import datetime
 from email.message import EmailMessage
 import smtplib
 import markdown
+import requests
 
 
 class Notifier():
@@ -55,29 +56,29 @@ class Notifier():
 # --------------------------------- methods ---------------------------------
     def process_emails(
             self,
+            date: str,
             subject: str,
             message: str,
-            recipients: List[str],
+            recipient: str,
             campuses: List[str] | None = None
-    ) -> Tuple[bool, datetime]:
+    ) -> bool:
         '''
         send emails to listed recipients
         :param subject: string subject of the email
         :param message: string message content of the email
-        :param recipients: list of string email addresses to send the email to
+        :param recipient: string email address to send the email to
         :return: boolean indicating success or failure of the email sending
             operation
         '''
-        date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
         try:
             if not self.__connection:
                 self.connect()
 
             if self.__dev_email:
-                recipients.append(self.__dev_email)
+                recipient = self.__dev_email
 
-            if not all([subject, message, recipients]):
+            if not all([subject, message, recipient]):
                 raise ValueError()
 
             # compose email body
@@ -88,35 +89,59 @@ class Notifier():
                 campuses
             )
 
-# ----------For development and testing purposes only---------
-# ----------Remove for production ----------------------------
-            # stubbed email list for testing
-            # recipients = [self.__dev_email]
-# ----------END ----------------------------------------------
-
             # send emails
-            for recipient in recipients:
-                self.send_email(
-                    recipient,
-                    subject,
-                    plain_email,
-                    md_email
-                )
+            self.send_email(
+                recipient,
+                subject,
+                plain_email,
+                md_email
+            )
 
             # disconnect and return
             self.disconnect()
-            return True, date
+            return True
 
         except (ValueError or KeyError) as e:
             self.disconnect()
             print(f'{e.__str__}'
                   'Value or key error on Notifier.process_emails()\n')
-            return False, None
+            return False
 
         except smtplib.SMTPException as e:
             print(f'{e.strerror}'
                   'Connection error on Notifier.process_emails()\n')
+            return False
 
+    # --------------------
+    def process_sms(
+            self,
+            subject: str,
+            message: str,
+            recipient: List[int, int]
+    ) -> bool:
+        '''
+        send sms to listed recipients using textbelt API
+        :param subject: string subject of the sms
+        :param message: string message content of the sms
+        :param recipient: list of int phone number and user id to send the sms to
+        :return: boolean indicating success or failure of the sms sending
+            operation
+        '''
+        date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
+
+        try:
+            if not all([subject, message, recipient]):
+                raise ValueError()
+
+            self.send_SMS(recipient, f'{subject}\n{message}')
+
+            # disconnect and return
+            return True
+
+        except (ValueError or KeyError) as e:
+            print(f'{e.__str__}'
+                  'Value or key error on Notifier.process_sms()\n')
+            return False
     # --------------------
     def compose_md_email(
             self,
@@ -180,3 +205,57 @@ class Notifier():
 
         self.__connection.send_message(msg)
         del msg
+
+    # --------------------
+    def send_SMS(
+            self,
+            recipient: int,
+            message: str
+    ) -> None:
+        '''
+        send an sms message to a recipient using textbelt API
+        :param recipient: int phone number of the recipient
+        :param message: string message content of the sms
+        :return: None else ValueError is raised
+        '''
+
+        key = env.TEXTBELT_KEY
+        # send sms via textbelt API
+        resp = requests.post('https://textbelt.com/text', {
+            'phone': recipient,
+            'message': message,
+            'key': key,
+        })
+
+        if not resp.json().get('success'):
+            raise ValueError(f'SMS not sent to {recipient}')
+
+# --------------------------------- STATIC -------------------------------
+    @staticmethod
+    def send_SMS_otp(
+            recipient: List[int, str]
+    ) -> str:
+        '''
+        send sms messages to listed recipients using textbelt API
+        :param recipient: a list containing recipient ids and their phone
+            number [user_id, phone_number]
+        '''
+
+        key = env.TEXTBELT_KEY
+        # send sms via textbelt API
+        try:
+            otp_request = requests.post('https://textbelt.com/otp/generate', {
+                'phone': recipient[1],
+                'userid': str(recipient[0]),
+                'key': key,
+            })
+            otp = otp_request.json().get('otp')
+            print(otp)
+            if not otp:
+                raise ValueError('OTP not generated')
+        except (ValueError or requests.RequestException) as e:
+            print(f'{e.__str__}\n'
+                  'Error on Notifier.send_SMS_otp()\n')
+            return None
+
+        return otp

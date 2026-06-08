@@ -16,7 +16,6 @@ import pymssql
 import bcrypt
 from typing import Tuple, List
 from datetime import datetime
-from itertools import chain
 
 
 class Database:
@@ -106,16 +105,18 @@ class Database:
         try:
             self.__cursor.execute(query, parameters)
 
-            query_starts_with = query.strip().lower()
+            result = None
 
-            if query_starts_with.startswith("select"):
+            # cursor.description is not None when the query returned columns.
+            # This works for SELECT and INSERT ... OUTPUT.
+            if self.__cursor.description is not None:
                 if fetch_all:
-                    return self.__cursor.fetchall()
-
-                return self.__cursor.fetchone()
+                    result = self.__cursor.fetchall()
+                else:
+                    result = self.__cursor.fetchone()
 
             self.__connection.commit()
-            return None
+            return result
 
         except pymssql.Error as error:
             self.__connection.rollback()
@@ -218,7 +219,7 @@ class Database:
             ).decode("utf-8")
 
             print('inserting user')
-            self.execute_query(
+            uid = self.execute_query(
                 '''
                 INSERT INTO USERS (
                     first_name,
@@ -230,6 +231,9 @@ class Database:
                     campus,
                     role_id
                 )
+
+                OUTPUT INSERTED.user_id
+
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
                 ''',
                 (
@@ -244,14 +248,20 @@ class Database:
                 ),
                 fetch_all=False
             )
+
+            self.get_new_user_notes(uid)
+            self.set_user_settings(uid)
             return True
 
         except pymssql.Error as e:
-            print(f'an error occured: {e}')
+            print(f'an error occurred: {e}')
             return False
 
     # --------------------
-    def get_notes(self) -> Tuple[bool, Tuple[str]]:
+    def get_new_user_notes(
+            self,
+            user_id: int
+    ) -> None:
         '''
 
         '''
@@ -259,46 +269,329 @@ class Database:
 
         get_notes_query = \
             '''
-            SELECT TOP 5 date_time, subject, body_text
+            INSERT INTO user_dashboard_notifications (user_id, notification_id)
+            SELECT %s, notification_id
             FROM NOTIFICATIONS
-            ORDER BY notification_id DESC;
+            WHERE date_time BETWEEN DATEADD(DAY, -7, GETDATE()) AND GETDATE();
             '''
 
         try:
-            result = self.execute_query(
+            self.execute_query(
                 get_notes_query,
-                fetch_all=True
+                (user_id,)
             )
-            return True, result
 
         except pymssql.Error as e:
-            print(f'SQL Error: {e}')
-            return False, ('none', 'none')
+            print(f'SQL Error on database.get_notes: {e.with_traceback(None)}')
+
+    # --------------------
+    def update_last_login(
+            self,
+            user_id: int,
+            date: datetime
+    ) -> bool:
+        '''
+        update last login attribute in user_settings by user_id
+        '''
+
+        update_last_login_query = \
+            '''
+            UPDATE user_settings
+            SET last_login = %s
+            WHERE user_id = %s;
+            '''
+
+        try:
+            self.execute_query(
+                update_last_login_query,
+                (
+                    date,
+                    user_id
+                )
+            )
+
+            return True
+
+        except pymssql.Error as e:
+            print(f'{e.with_traceback}')
+            print('Error from database.update_last_login')
+            return False
+
+    # --------------------
+    def set_user_settings(
+            self,
+            user_id,
+            notification_type: str | None = "email"
+    ) -> None:
+        '''
+
+        '''
+
+        user_settings_query = \
+            '''
+            INSERT INTO user_settings (user_id, notification_type)
+
+            VALUES(%s, %s)
+
+            '''
+
+        try:
+            self.execute_query(
+                user_settings_query,
+                (user_id, notification_type)
+            )
+
+        except pymssql.Error as e:
+            print('Error on database.set_user_settings: '
+                  f'{e.with_traceback(None)}')
+
+    # --------------------
+    def get_user_settings(
+        self,
+        user_id: int
+    ) -> Tuple[bool, dict | None]:
+        """
+        Get user settings and dashboard notifications for a user.
+
+        Dashboard notifications are stored in the user_dashboard_notifications
+        table. Each notification returned includes an is_new value based on
+        whether the notification was created after the user's last_login.
+
+        :param user_id: int user id to get settings for
+        :return: tuple of (success, settings dict or None)
+        """
+
+        from app.logic.models.Notification import Notification
+        self.ensure_connection()
+
+        get_user_settings_query = """
+        SELECT
+            us.notification_type,
+            us.last_login,
+
+            n.notification_id,
+            n.sender_id,
+            n.template_id,
+            n.subject,
+            n.body_text,
+            n.num_recip,
+            n.image_id,
+            n.date_time,
+
+            CASE
+                WHEN us.last_login IS NULL THEN 0
+                WHEN n.date_time > us.last_login THEN 1
+                ELSE 0
+            END AS is_new
+
+        FROM user_settings us
+
+        LEFT JOIN user_dashboard_notifications udn
+            ON udn.user_id = us.user_id
+
+        LEFT JOIN NOTIFICATIONS n
+            ON n.notification_id = udn.notification_id
+
+        WHERE us.user_id = %s
+
+        ORDER BY
+            n.date_time DESC
+        """
+
+        try:
+            result = self.execute_query(
+                get_user_settings_query,
+                (user_id,),
+                fetch_all=True
+            )
+
+            if not result:
+                return False, None
+
+            settings = {
+                "notification_type": result[0][0],
+                "last_login": result[0][1],
+                "dashboard_notifications": []
+            }
+
+            for row in result:
+                notification_id = row[2]
+
+                # This happens if the user has settings,
+                # but no dashboard notifications assigned yet.
+                if notification_id is None:
+                    continue
+
+                notification = Notification(
+                    sender_id=row[3],
+                    template_id=row[4],
+                    subject=row[5],
+                    message=row[6],
+                    image_id=row[8],
+                )
+                notification.notification_id = notification_id
+                notification.date = row[9]
+                notification.num_recipients = row[7]
+                notification.is_new = bool(row[10])
+
+                settings["dashboard_notifications"].append(notification)
+
+            return True, settings
+
+        except pymssql.Error as error:
+            print(f"Error getting user settings: {error}")
+            return False, None
+
+    # --------------------
+    def add_phone_number(
+            self,
+            user_id: int,
+            phone_number: str
+    ) -> bool:
+        '''
+        add a phone number to the user's account for sms notifications
+        :param user_id: int user id to add phone number for
+        :param phone_number: str phone number to add
+        :return: bool indicating success or failure of the operation
+        '''
+
+        add_phone_number_query = '''
+        UPDATE user_settings
+        SET phone_number = %s
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                add_phone_number_query,
+                (phone_number, user_id),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error adding phone number: {error}")
+            return False
+
+    # --------------------
+    def update_user_notification_type(
+            self,
+            user_id: int,
+            notification_type: str
+    ) -> bool:
+        '''
+        update the user's notification type
+        :param user_id: int user id to update
+        :param notification_type: str notification type to set
+        :return: bool indicating success or failure of the operation
+        '''
+
+        update_notification_type_query = '''
+        UPDATE user_settings
+        SET notification_type = %s
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                update_notification_type_query,
+                (notification_type, user_id),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error updating notification type: {error}")
+            return False
+
+    # --------------------
+    def remove_user_dashboard_notifications(
+            self,
+            user_id: int,
+            notification_ids: set[int]
+    ) -> bool:
+        '''
+        Remove specified notifications from the user's dashboard notifications.
+        :param user_id: int user id to remove notifications for
+        :param notification_ids: set of int notification ids to remove
+        :return: bool indicating success or failure of the operation
+        '''
+        if not notification_ids:
+            print("No notification IDs provided for removal.")
+            return False
+
+        placeholders = ', '.join(['%s'] * len(notification_ids))
+        delete_query = f'''
+            DELETE FROM user_dashboard_notifications
+            WHERE user_id = %s AND notification_id IN ({placeholders});
+        '''
+
+        try:
+            self.execute_query(
+                delete_query,
+                (user_id, *notification_ids),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error removing dashboard notifications: {error}")
+            return False
+
+    # --------------------
+    def lock_account(
+            self,
+            user_id: int
+    ) -> bool:
+        '''
+        lock the user's account by setting their role to 4
+        :param user_id: int user id to lock
+        :return: bool indicating success or failure of the operation
+        '''
+
+        lock_account_query = '''
+        UPDATE USERS
+        SET role_id = 4
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                lock_account_query,
+                (user_id,),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error locking account: {error}")
+            return False
 
 # ------------------------ notification log methods ---------------------------
-    def get_recipients(self) -> List[str]:
+    def get_recipients(self) -> List[Tuple[str, int, str]]:
         '''
         gets a list of subscriber emails from the database and passes it
             forward
         '''
         get_recipients_query = '''
-        SELECT email_address
-        FROM USERS
-        WHERE role_id = 1
+        SELECT u.email_address, us.phone_number, us.notification_type
+        FROM USERS u
+        JOIN user_settings us ON u.user_id = us.user_id
+        WHERE u.role_id IN (0, 1, 3);
         '''
 
         try:
-            recipients = list(chain.from_iterable(
-                    self.execute_query(
-                        get_recipients_query,
-                        fetch_all=True
-                    )
+            recipients = list(
+                self.execute_query(
+                    get_recipients_query,
+                    fetch_all=True
                 )
             )
             return recipients
         except ValueError or pymssql.Error:
             print('no recipients returned from database.get_recipients')
 
+    # --------------------
     def log_notification(
             self,
             date: datetime,
@@ -324,6 +617,7 @@ class Database:
         self.ensure_connection()
 
         log_notification_query = '''
+        SET NOCOUNT ON;
         INSERT INTO NOTIFICATIONS (
                 sender_id,
                 template_id,
@@ -333,14 +627,23 @@ class Database:
                 image_id,
                 date_time
         )
+        OUTPUT INSERTED.notification_id
         VALUES (%s, %s, %s, %s, %s, %s, %s);
         '''
 
+        add_notification_to_all_users_query = '''
+        INSERT INTO user_dashboard_notifications (user_id, notification_id)
+        SELECT user_id, %s
+        FROM USERS;
+        '''
+
         try:
+            # log the notification and return generated id
             print('logging notification')
-            self.execute_query(
+            notification_id = self.execute_query(
                 log_notification_query,
-                (
+                fetch_all=False,
+                parameters=(
                     sender_id,
                     template_id,
                     subject,
@@ -349,6 +652,20 @@ class Database:
                     image_id,
                     date
                 )
+            )
+
+            print(f'notification logged with id: {notification_id}')
+
+            if notification_id is None:
+                print('Failed to log notification: No ID returned')
+                raise pymssql.Error()
+
+            # add associated notification to all users
+            print('associating notification with users')
+            self.execute_query(
+                add_notification_to_all_users_query,
+                (notification_id[0],),
+                fetch_all=False
             )
 
         except pymssql.Error:
