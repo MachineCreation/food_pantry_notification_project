@@ -8,6 +8,7 @@
 
 from pathlib import Path
 import pygubu
+from PIL import Image, ImageTk
 
 
 class TemplateView:
@@ -15,6 +16,8 @@ class TemplateView:
         self.__parent = parent
         self.controller = controller
         self.builder = pygubu.Builder()
+        self.preview_image = None
+        self.text_images = []
 
         # Load the UI file
         ui_path = Path(__file__).parent.parent / "ui" / "template.ui"
@@ -118,6 +121,22 @@ class TemplateView:
         message_widget.insert("insert", "{" + tag_value + "} ")
         message_widget.focus_set()
 
+    def insert_image_into_message(self, file_path):
+        """
+        inserts the image into the message text box
+        """
+        widget = self.builder.get_object("message_text")
+
+        image = Image.open(file_path)
+        image.thumbnail((220, 220))
+
+        tk_image = ImageTk.PhotoImage(image)
+        self.text_images.append(tk_image)
+
+        widget.insert("insert", "\n")
+        widget.image_create("insert", image=tk_image)
+        widget.insert("insert", "\n")
+
     def set_message(self, value):
         """
         fills the Message text box with the given value
@@ -135,9 +154,18 @@ class TemplateView:
         self.set_subject("")
         self.set_tag_value("")
         self.set_message("")
+        self.clear_image_path()
 
         existing_template_widget = self.builder.get_object("existing_templates_combobox")
         existing_template_widget.set("")
+
+    def clear_image_preview(self):
+        """
+        clears the image preview
+        """
+        widget = self.builder.get_object("image_preview_label")
+        widget.config(image="", text="No image selected")
+        self.preview_image = None
 
     def set_template_name_readonly(self):
         """
@@ -166,3 +194,17 @@ class TemplateView:
         """
         widget = self.builder.get_object("save_button")
         widget.config(text=value)
+
+    def set_image_path(self, value):
+        """
+        shows the selected image file name
+        """
+        widget = self.builder.get_object("image_path_label")
+        widget.config(text=value if value else "No image selected")
+
+    def clear_image_path(self):
+        """
+        clears the selected image display
+        """
+        widget = self.builder.get_object("image_path_label")
+        widget.config(text="No image selected")
