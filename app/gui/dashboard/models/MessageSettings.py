@@ -8,6 +8,8 @@
 # Description: class to handle the change of user message preference settings
 
 # Local imports
+import asyncio
+
 from app.gui.utilities.models.FrameBase import FrameBase
 from app.logic.utilities.validation import validate_phone_number, \
     validate_passwords_match
@@ -210,7 +212,25 @@ class MessageSettings(FrameBase):
                 "Verification Code Sent",
                 f"A verification code has been sent to {phone_number}."
             )
+            self.__send_verification_button.configure(state="disabled")
             self.__otp = otp
+            self.after(300_000, self.handle_verification_timeout)
+
+    # --------------------
+    async def handle_verification_timeout(self):
+        '''
+        handle the verification timeout by resetting the verification process
+        '''
+        if self.__otp is not None:
+            showwarning(
+                "Verification Timeout",
+                "The verification code has expired. Please request a new code."
+            )
+            self.__back_button.configure(state="normal")
+            self.__attempt_counter += 1
+            self.__otp = None
+            self.__send_verification_button.configure(state="normal")
+            self.__verification_code_entry.delete(0, 'end')
 
     # --------------------
     def verify_code(self):
@@ -234,9 +254,17 @@ class MessageSettings(FrameBase):
             self.__back_button.configure(state="normal")
             self.__attempt_counter = 0
             self.__otp = None
-            self.send_to_route("dashboard")
             self._app_context['user'].\
-                add_phone_number(self.__phone_number_entry.get())
+                add_phone_number(
+                    self.__phone_number_entry.get(),
+                    self._app_context['database']
+                )
+            self._app_context['user'].update_notification_type(
+                self.__message_type_entry.get(),
+                self._app_context['database']
+            )
+            self.send_to_route("dashboard")
+
         else:
             self.__verification_code_entry.delete(0, 'end')
             showwarning(

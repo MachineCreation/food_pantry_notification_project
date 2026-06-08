@@ -192,12 +192,37 @@ class User():
         from app.database.models.Database import Database
         db: Database = database
 
-        success = db.add_user_phone_number(self.user_id, phone_number)
+        success = db.add_phone_number(self.user_id, phone_number)
 
         if success:
             print("Phone number added successfully.")
         else:
             print("Error adding phone number.")
+
+    # --------------------
+    def update_notification_type(
+            self,
+            notification_type: str,
+            database: object
+    ) -> None:
+        '''
+        updates the user's notification type
+        :param notification_type: the notification type to set
+        :param database: the database object to update the account in
+        :return: None
+        '''
+        from app.database.models.Database import Database
+        db: Database = database
+
+        success = db.update_user_notification_type(
+            self.user_id,
+            notification_type
+        )
+
+        if success:
+            print("Notification type updated successfully.")
+        else:
+            print("Error updating notification type.")
             
     # --------------------
     def lock_account(

@@ -1,15 +1,14 @@
 # from app.database.models.Notifier import Notifier
-from app.logic.models.Notification import Notification
+from app.database.models.Database import Database
 
 
 def test_send_sms_otp():
     '''
     test the send_sms_otp method of the Notifier class
     '''
-    recipient = [1, 1234567890]
-    otp = Notification.send_sms_otp(recipient)
-
-    print(f"OTP sent: {otp}")
+    db = Database()
+    res = db.get_recipients()
+    print(res)
 
 
 if __name__ == "__main__":

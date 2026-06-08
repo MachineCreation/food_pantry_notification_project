@@ -457,7 +457,7 @@ class Database:
         '''
 
         add_phone_number_query = '''
-        UPDATE 
+        UPDATE user_settings
         SET phone_number = %s
         WHERE user_id = %s;
         '''
@@ -472,6 +472,37 @@ class Database:
 
         except pymssql.Error as error:
             print(f"Error adding phone number: {error}")
+            return False
+        
+    # --------------------
+    def update_user_notification_type(
+            self,
+            user_id: int,
+            notification_type: str
+    ) -> bool:
+        '''
+        update the user's notification type
+        :param user_id: int user id to update
+        :param notification_type: str notification type to set
+        :return: bool indicating success or failure of the operation
+        '''
+
+        update_notification_type_query = '''
+        UPDATE user_settings
+        SET notification_type = %s
+        WHERE user_id = %s;
+        '''
+
+        try:
+            self.execute_query(
+                update_notification_type_query,
+                (notification_type, user_id),
+                fetch_all=False
+            )
+            return True
+
+        except pymssql.Error as error:
+            print(f"Error updating notification type: {error}")
             return False
 
     # --------------------
@@ -538,23 +569,23 @@ class Database:
             return False
 
 # ------------------------ notification log methods ---------------------------
-    def get_recipients(self) -> List[str]:
+    def get_recipients(self) -> List[Tuple[str, int, str]]:
         '''
         gets a list of subscriber emails from the database and passes it
             forward
         '''
         get_recipients_query = '''
-        SELECT email_address
-        FROM USERS
-        WHERE role_id = 1
+        SELECT u.email_address, us.phone_number, us.notification_type
+        FROM USERS u
+        JOIN user_settings us ON u.user_id = us.user_id
+        WHERE u.role_id IN (0, 1, 3);
         '''
 
         try:
-            recipients = list(chain.from_iterable(
-                    self.execute_query(
-                        get_recipients_query,
-                        fetch_all=True
-                    )
+            recipients = list(
+                self.execute_query(
+                    get_recipients_query,
+                    fetch_all=True
                 )
             )
             return recipients
