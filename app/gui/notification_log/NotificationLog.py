@@ -15,8 +15,9 @@ from app.database.models.Database import Database
 # Python Imports
 import tkinter as tk
 import tkinter.ttk as ttk
+import csv
 from tkcalendar import DateEntry
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from datetime import date, datetime, time
 from typing import Any
 
@@ -26,9 +27,11 @@ class NotificationLog:
 
     Features:
     - Date range filtering
-    - Message sender filtering
+    - Keyword filtering
     - Display all records
     - Row selection to preview message contents
+    - Notification resend support
+    - CSV export
     - Navigation back to dashboard
 
     It does not perform database access directly, it delegates to LogRecord
@@ -63,6 +66,7 @@ class NotificationLog:
         top_level.columnconfigure(0, weight=1)
         top_level.rowconfigure(3, weight=1)
         top_level.rowconfigure(4, weight=1)
+        top_level.rowconfigure(5, weight=1)
 
         # Header
         header_label = ttk.Label(top_level, text="Notification Logs", font=("Arial", 20, "bold"))
@@ -183,11 +187,26 @@ class NotificationLog:
         # Message Display
         self.mess_display = tk.Text(mess_frame, height=6, wrap="word")
         self.mess_display.grid(column=0, row=0, sticky="nsew")
+        self.mess_display.config(state="disabled")
 
         # Vertical Scrollbar
         mess_scrollbar = ttk.Scrollbar(mess_frame, orient="vertical", command=self.mess_display.yview)
         mess_scrollbar.grid(column=1, row=0, sticky="ns")
         self.mess_display.configure(yscrollcommand=mess_scrollbar.set)
+
+        # ---Row 5: Notification Re-send and Export Buttons
+        resend_frame = ttk.Frame(top_level)
+        resend_frame.grid(column=0, row=5, sticky="e")
+        resend_frame.columnconfigure(0, weight=0)
+        resend_frame.rowconfigure(1, weight=0)
+
+        # Resend Notification
+        self.resend_button = ttk.Button(resend_frame, text="Resend", command=self.resend_notification, state="disabled")
+        self.resend_button.grid(column=0, row=0, padx=5)
+
+        # Export Notification Log
+        export_button = ttk.Button(resend_frame, text="Export", command=self.export_csv)
+        export_button.grid(column=1, row=0, padx=5)
 
         self.mainwindow = top_level
 
@@ -209,6 +228,7 @@ class NotificationLog:
         self.clear_message_display()
         self.keyword_entry.delete(0,tk.END)
         self.reset_sort_indicators()
+        self.resend_button.config(state="disabled")
 
     def back(self) -> None:
         """
@@ -217,13 +237,47 @@ class NotificationLog:
         from app.gui.utilities.routes import send_to_route
         send_to_route("dashboard", self.parent)
 
+    def resend_notification(self) -> None:
+        """
+        Load the selected notification into the Send Notification page.
+        """
+
+        selected = self.tree.selection()
+
+        if len(selected) == 0:
+            messagebox.showwarning("No Selection", "Please select a notification to resend")
+            return
+
+        if len(selected) > 1:
+            messagebox.showwarning("Multiple Selections", "Please select only one notification to resend.")
+            return
+
+        item_id = selected[0]
+        values = self.tree.item(item_id, "values")
+
+        # Current order: date, subject, message, sender, recipients
+        self.app_context["resend_notification"] = {
+            "subject": values[1],
+            "message": values[2]
+        }
+
+        from app.gui.utilities.routes import send_to_route
+        self.app_context["send_notification_return_route"] = "notification_log"
+        send_to_route("send_notification", self.parent)
+
     def on_row_select(self, _event: tk.Event) -> None:
         """
         Displays notification contents when user clicks on record in tree view
         """
         # Get all selected row IDs; exit early if nothing is selected
         selected = self.tree.selection()
-        if  not selected:
+
+        if len(selected) == 1:
+            self.resend_button.config(state="normal")
+        else:
+            self.resend_button.config(state="disabled")
+
+        if not selected:
             return
 
         blocks = []
@@ -262,23 +316,22 @@ class NotificationLog:
             return
 
         # Clear any previous results and message preview
-        self.tree.delete(*self.tree.get_children())
-        self.clear_message_display()
+        self.clear()
 
-        # Query hte database through the repository layer
+        # Query the database through the repository layer
         try:
             all_data = self.repo.search(start, end, keyword)
-        except Exception as e:
+        except Exception:
             messagebox.showerror("Internal Error", "This feature cannot run on your "
                                                    "computer due to a missing or incompatible driver.")
             return
 
-        # Show a placeholder row if no results were found
+        # Show a message if no results were found
         if not all_data:
-            self.tree.insert("",
-                             tk.END,
-                             values=("", "", "No Results", "", "")
-                             )
+            messagebox.showinfo(
+                "Search Results",
+                "No notifications matched your search criteria."
+            )
 
         # Insert each record into the Treeview
         for data in all_data:
@@ -305,7 +358,7 @@ class NotificationLog:
         # Retrieve all records from the repository
         try:
             all_data = self.repo.display_all()
-        except Exception as e:
+        except Exception:
             messagebox.showerror(
                 "Internal Error",
                 "This feature cannot run due to a missing or incompatible database driver"
@@ -337,7 +390,7 @@ class NotificationLog:
     def format_dt(self, dt: datetime | str) -> str:
         """
         Convert a datetime or ISO-formatted string into a consistent
-        mm-dd-yyyy HH:MM:SS display format. IF parsing fails, return
+        mm-dd-yyyy HH:MM:SS display format. If parsing fails, return
         the original value unchanged.
         """
         if isinstance(dt, datetime):
@@ -345,7 +398,7 @@ class NotificationLog:
         try:
             parsed = datetime.fromisoformat(dt)
             return parsed.strftime("%m-%d-%Y %H:%M:%S")
-        except:
+        except Exception:
             return dt
 
     def sort_column(self, column: str, reverse: bool) -> None:
@@ -392,3 +445,55 @@ class NotificationLog:
                               text=title,
                               command=lambda c=col: self.sort_column(c, False))
 
+    def export_csv(self) -> None:
+        """
+        Export the notification log records currently displayed in the
+        Treeview to a CSV file selected by the user.
+
+        If the user cancels the save dialog, no file is created.
+        """
+
+        rows = self.tree.get_children()
+
+        if not rows:
+            messagebox.showwarning(
+                "No Records",
+                "There are no notification log records to export."
+            )
+            return
+
+        # Prompt the user to select a save location and filename
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV Files", "*.csv")]
+        )
+
+        # Exit if the user cancels the save operation
+        if not filename:
+            return
+
+        # Create the CSV file and write column headers
+        try:
+            with open(filename, "w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    "Date",
+                    "Subject",
+                    "Message",
+                    "Sender",
+                    "Recipients",
+                ])
+
+                # Export each row currently displayed in the Treeview
+                for item_id in self.tree.get_children():
+                    writer.writerow(self.tree.item(item_id, "values"))
+
+            messagebox.showinfo(
+                "Export Complete",
+                "Notification log exported successfully.")
+
+        except Exception:
+            messagebox.showerror(
+                "Export Failed",
+                "Unable to save the selected file."
+            )

@@ -9,16 +9,17 @@
 # Description: Class and Logic for the notification log records
 
 # Local Imports
-from app.database.models.Database import Database
 
 # Python Imports
 from datetime import datetime
-from typing import List
 
 
 class LogRecord:
     """
-    Represents a notification log entry retrieved from the database.
+    Represents a single notification log entry retrieved from the database.
+
+    Stores notification details retrieved from the database, including
+    the message subject, body, sender, recipient count, and timestamp.
     """
 
     def __init__(
