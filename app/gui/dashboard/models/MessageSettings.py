@@ -8,16 +8,14 @@
 # Description: class to handle the change of user message preference settings
 
 # Local imports
-import asyncio
 
 from app.gui.utilities.models.FrameBase import FrameBase
-from app.logic.utilities.validation import validate_phone_number, \
-    validate_passwords_match
+from app.logic.utilities.validation import validate_phone_number
 from app.gui.utilities.EntryBehavior import EntryBehavior
 
 # python imports
 from tkinter import ttk
-from tkinter.messagebox import showwarning
+from tkinter.messagebox import showwarning, showinfo
 
 
 class MessageSettings(FrameBase):
@@ -37,6 +35,8 @@ class MessageSettings(FrameBase):
         self.configure_buttons()
         self.configure_fields()
         self.configure_verification_feature()
+        self.get_note_type()
+        self.on_message_type_change()
 
     # -------------------- methods --------------------
     def configure_buttons(self):
@@ -153,10 +153,6 @@ class MessageSettings(FrameBase):
         )
         self.__verification_label_frame.grid_remove()
 
-        # verification code entry
-        self.__verification_code_entry: ttk.Entry = \
-            self._builder.get_object("verification_code_entry")
-
     # --------------------
     def validate_phone_number(self, phone_number: str):
         '''
@@ -172,7 +168,6 @@ class MessageSettings(FrameBase):
         else:
             self.__phone_number_entry.configure(foreground="black")
             self.__phone_number_entry.configure(state="disabled")
-            self.__back_button.configure(state="disabled")
             self.__send_verification_button.grid()
             self.__verification_label_frame.grid()
 
@@ -208,16 +203,16 @@ class MessageSettings(FrameBase):
         print(f"OTP sent: {otp}")
 
         if otp:
-            showwarning(
+            showinfo(
                 "Verification Code Sent",
                 f"A verification code has been sent to {phone_number}."
             )
             self.__send_verification_button.configure(state="disabled")
             self.__otp = otp
-            self.after(300_000, self.handle_verification_timeout)
+            self._frame.after(300_000, self.handle_verification_timeout)
 
     # --------------------
-    async def handle_verification_timeout(self):
+    def handle_verification_timeout(self):
         '''
         handle the verification timeout by resetting the verification process
         '''
@@ -226,7 +221,6 @@ class MessageSettings(FrameBase):
                 "Verification Timeout",
                 "The verification code has expired. Please request a new code."
             )
-            self.__back_button.configure(state="normal")
             self.__attempt_counter += 1
             self.__otp = None
             self.__send_verification_button.configure(state="normal")
@@ -239,7 +233,7 @@ class MessageSettings(FrameBase):
         '''
         try:
             valid = \
-                bool(self.__otp == int(self.__verification_code_entry.get()))
+                bool(self.__otp == self.__verification_code_entry.get())
         except ValueError:
             valid = False
 
@@ -251,7 +245,6 @@ class MessageSettings(FrameBase):
             self.__verification_code_entry.delete(0, 'end')
             self.__verification_code_entry.configure(state="disabled")
             self.__send_verification_button.configure(state="disabled")
-            self.__back_button.configure(state="normal")
             self.__attempt_counter = 0
             self.__otp = None
             self._app_context['user'].\
@@ -279,10 +272,22 @@ class MessageSettings(FrameBase):
                     "You have entered an incorrect verification code too many"
                     " times. Please request a new code."
                 )
-                self.__back_button.configure(state="normal")
                 self.__attempt_counter = 0
                 self.__otp = None
-                self._app_context['user'].lock_account()
+                self._app_context['user'].lock_account(
+                    self._app_context['database']
+                    )
+                self._app_context['user'] = None
+                self.send_to_route("sign_in")
+
+    # --------------------
+    def get_note_type(self):
+        '''
+        get the selected message type
+        '''
+        self.__message_type_entry.set(
+            self._app_context['user'].notification_type
+        )
 
     # --------------------
     def clear_fields(self):

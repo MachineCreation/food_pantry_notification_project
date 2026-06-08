@@ -233,21 +233,24 @@ class Notifier():
 # --------------------------------- STATIC -------------------------------
     @staticmethod
     def send_SMS_otp(
-            recipient: List[int, int]
+            recipient: List[int, str]
     ) -> str:
         '''
         send sms messages to listed recipients using textbelt API
+        :param recipient: a list containing recipient ids and their phone
+            number [user_id, phone_number]
         '''
 
         key = env.TEXTBELT_KEY
         # send sms via textbelt API
         try:
             otp_request = requests.post('https://textbelt.com/otp/generate', {
-                'phone': '5033285142',
-                'userid': 'test_user',
+                'phone': recipient[1],
+                'userid': str(recipient[0]),
                 'key': key,
             })
             otp = otp_request.json().get('otp')
+            print(otp)
             if not otp:
                 raise ValueError('OTP not generated')
         except (ValueError or requests.RequestException) as e:

@@ -237,7 +237,7 @@ class User():
         from app.database.models.Database import Database
         db: Database = database
 
-        success = db.lock_user_account(self.user_id)
+        success = db.lock_account(self.user_id)
 
         if success:
             print("Account locked successfully.")
@@ -269,7 +269,7 @@ class User():
                                             id_type
                                            )
 
-            if authenticated and user_role != 0:
+            if authenticated and user_role != 4:
                 app_context['user'] = User(username, user_id, user_role)
                 return authenticated
 

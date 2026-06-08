@@ -10,8 +10,6 @@
 # subscribers
 
 # Local imports
-from time import strftime
-
 from app.database.models.Database import Database
 from app.database.models.Notifier import Notifier
 
@@ -160,7 +158,7 @@ class Notification():
         :param app_context: dictionary context of the application
         '''
         try:
-            self.__date = datetime.now()strftime("%Y-%m-%d %I:%M:%S %p")
+            self.__date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
             # assign variables
             database: Database = app_context['database']
             notifier = app_context['notifier']
@@ -180,13 +178,14 @@ class Notification():
                         self.__subject,
                         self.__message,
                         recipient[0]
-                )
-                elif recipient[2] in ['sms', 'Both']:
-                    sent= notifier.process_sms(
+                    )
+
+                if recipient[2] in ['sms', 'Both']:
+                    sent = notifier.process_sms(
                         self.__subject,
                         self.__message,
                         recipient[1]
-                )
+                    )
 
                 if not sent:
                     raise ValueError('Emails not sent')

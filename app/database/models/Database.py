@@ -16,7 +16,6 @@ import pymssql
 import bcrypt
 from typing import Tuple, List
 from datetime import datetime
-from itertools import chain
 
 
 class Database:
@@ -322,7 +321,7 @@ class Database:
     def set_user_settings(
             self,
             user_id,
-            notification_type: str | None = "email" 
+            notification_type: str | None = "email"
     ) -> None:
         '''
 
@@ -442,7 +441,7 @@ class Database:
         except pymssql.Error as error:
             print(f"Error getting user settings: {error}")
             return False, None
-        
+
     # --------------------
     def add_phone_number(
             self,
@@ -473,7 +472,7 @@ class Database:
         except pymssql.Error as error:
             print(f"Error adding phone number: {error}")
             return False
-        
+
     # --------------------
     def update_user_notification_type(
             self,
@@ -538,21 +537,21 @@ class Database:
         except pymssql.Error as error:
             print(f"Error removing dashboard notifications: {error}")
             return False
-        
+
     # --------------------
     def lock_account(
             self,
             user_id: int
     ) -> bool:
         '''
-        lock the user's account by setting their role to 0
+        lock the user's account by setting their role to 4
         :param user_id: int user id to lock
         :return: bool indicating success or failure of the operation
         '''
 
         lock_account_query = '''
         UPDATE USERS
-        SET role_id = 0
+        SET role_id = 4
         WHERE user_id = %s;
         '''
 

@@ -29,7 +29,8 @@ class Template():
             subject: str,
             template_body: str,
             tags: str,  # change this to a list
-            c_date: datetime
+            c_date: datetime,
+            image_path: str | None = None
     ) -> None:
         self.__template_id = template_id
         self.__template_name = template_name
@@ -99,13 +100,17 @@ class Template():
         templates_tuples = database.get_all_templates()
 
         for template in templates_tuples:
+
+            # template tuple format:
+            # (template_id, template_name, creator_id, subject, template_body,
+            # tags, created_date)
             cls.__all_templates[template[1]] = Template(*template)
 
     # --------------------
     @classmethod
     def all_templates(cls) -> dict:
         '''
-        dict of template objet refrences
-            tamplate_name: Teplate object
+        dict of template object references
+            template_name: Template object
         '''
         return cls.__all_templates
