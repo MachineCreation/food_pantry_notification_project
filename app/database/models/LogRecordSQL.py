@@ -13,13 +13,15 @@ from app.logic.models.LogRecord import LogRecord
 from datetime import datetime
 from typing import List
 
+
 class LogRecordSQL:
     """
     Repository class responsible for retrieving notification log records
     from the database. This class isolates all SQL logic so the GUI
     layer does not interact with the database directly.
     """
-    def __init__(self, db:Database) -> None:
+
+    def __init__(self, db: Database) -> None:
         """
         Initialize the repository with a database connection.
 
@@ -30,7 +32,7 @@ class LogRecordSQL:
 
     def search(self, start_date: datetime, end_date: datetime, keyword: str) -> list[LogRecord]:
         """
-        Search for notitfication records within a date range, optionally filtering
+        Search for notification records within a date range, optionally filtering
         by a keyword that may appear in the subject, body text, sender name, or
         sender username.
 
