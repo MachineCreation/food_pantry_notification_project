@@ -139,7 +139,6 @@
             </child>
             <child>
               <object class="ttk.Combobox" id="tags_combobox" named="True">
-                <property name="width">25</property>
                 <layout manager="grid">
                   <property name="column">1</property>
                   <property name="ipady">5</property>
@@ -212,6 +211,7 @@
                 <property name="command" type="command" cbtype="simple">on_save</property>
                 <property name="text" translatable="yes">Save Template</property>
                 <property name="width">14</property>
+                <bind sequence="&lt;1&gt;" handler="on_save" add="" />
                 <layout manager="grid">
                   <property name="column">3</property>
                   <property name="padx">5</property>
@@ -225,6 +225,7 @@
                 <property name="command" type="command" cbtype="simple">on_clear</property>
                 <property name="text" translatable="yes">Clear</property>
                 <property name="width">14</property>
+                <bind sequence="&lt;1&gt;" handler="on_clear" add="" />
                 <layout manager="grid">
                   <property name="column">3</property>
                   <property name="padx">5</property>
