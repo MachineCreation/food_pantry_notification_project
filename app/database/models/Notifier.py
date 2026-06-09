@@ -117,23 +117,22 @@ class Notifier():
             self,
             subject: str,
             message: str,
-            recipient: List[int, int]
+            recipient: List[int, str]
     ) -> bool:
         '''
         send sms to listed recipients using textbelt API
         :param subject: string subject of the sms
         :param message: string message content of the sms
-        :param recipient: list of int phone number and user id to send the sms to
+        :param recipient: list of str phone number and int user id to send the sms to
         :return: boolean indicating success or failure of the sms sending
             operation
         '''
-        date = datetime.now().strftime("%Y-%m-%d %I:%M:%S %p")
 
         try:
             if not all([subject, message, recipient]):
                 raise ValueError()
 
-            self.send_SMS(recipient, f'{subject}\n{message}')
+            self.send_SMS(recipient[1], f'{subject}\n{message}')
 
             # disconnect and return
             return True
@@ -142,6 +141,7 @@ class Notifier():
             print(f'{e.__str__}'
                   'Value or key error on Notifier.process_sms()\n')
             return False
+
     # --------------------
     def compose_md_email(
             self,
@@ -209,12 +209,12 @@ class Notifier():
     # --------------------
     def send_SMS(
             self,
-            recipient: int,
+            recipient: str,
             message: str
     ) -> None:
         '''
         send an sms message to a recipient using textbelt API
-        :param recipient: int phone number of the recipient
+        :param recipient: str phone number of the recipient
         :param message: string message content of the sms
         :return: None else ValueError is raised
         '''

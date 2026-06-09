@@ -211,7 +211,7 @@ class Notification():
     # --------------------------------- STATIC -------------------------------
     @staticmethod
     def send_sms_otp(
-            recipient: List[int, int]
+            recipient: List[int, str]
     ) -> str:
         '''
         send sms otp messages to listed recipients using textbelt API
