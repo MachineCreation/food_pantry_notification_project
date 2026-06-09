@@ -12,7 +12,6 @@
 # Local imports
 from app.database.models.Database import Database
 from app.database.models.Notifier import Notifier
-from app.logic.models.User import User
 
 # python imports
 from typing import List, Tuple
@@ -206,7 +205,7 @@ class Notification():
         except (ValueError or KeyError) as e:
             print('there was an error on Notification.send_notification, '
                   'time for some debugging, lucky you!\n'
-                  f'{e.__str__}')
+                  f'{e}')
             return False
 
     # --------------------------------- STATIC -------------------------------
