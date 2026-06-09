@@ -211,15 +211,13 @@ class Notification():
     # --------------------------------- STATIC -------------------------------
     @staticmethod
     def send_sms_otp(
-            recipient: List[int, str]
+            recipient: str
     ) -> str:
         '''
         send sms otp messages to listed recipients using textbelt API
-        :param recipient: a list containing recipient ids and their phone
-            number
+        :param recipient: a string containing the recipient's phone number
         :return: an otp
         '''
-
         otp = Notifier.send_SMS_otp(
             recipient
         )

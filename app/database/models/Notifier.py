@@ -13,8 +13,7 @@
 import env
 
 # python imports
-from typing import List, Tuple
-from datetime import datetime
+from typing import List
 from email.message import EmailMessage
 import smtplib
 import markdown
@@ -117,7 +116,7 @@ class Notifier():
             self,
             subject: str,
             message: str,
-            recipient: List[int, str]
+            recipient: str
     ) -> bool:
         '''
         send sms to listed recipients using textbelt API
@@ -132,13 +131,13 @@ class Notifier():
             if not all([subject, message, recipient]):
                 raise ValueError()
 
-            self.send_SMS(recipient[1], f'{subject}\n{message}')
+            self.send_SMS(recipient, f'{subject}\n{message}')
 
             # disconnect and return
             return True
 
         except (ValueError or KeyError) as e:
-            print(f'{e.__str__}'
+            print(f'{e}'
                   'Value or key error on Notifier.process_sms()\n')
             return False
 
@@ -233,28 +232,26 @@ class Notifier():
 # --------------------------------- STATIC -------------------------------
     @staticmethod
     def send_SMS_otp(
-            recipient: List[int, str]
+            recipient: str
     ) -> str:
         '''
         send sms messages to listed recipients using textbelt API
-        :param recipient: a list containing recipient ids and their phone
-            number [user_id, phone_number]
+        :param recipient: a string containing the recipient's phone number
         '''
 
         key = env.TEXTBELT_KEY
         # send sms via textbelt API
         try:
             otp_request = requests.post('https://textbelt.com/otp/generate', {
-                'phone': recipient[1],
-                'userid': str(recipient[0]),
+                'phone': recipient,
+                'userid': 'otp_user',
                 'key': key,
             })
             otp = otp_request.json().get('otp')
-            print(otp)
             if not otp:
                 raise ValueError('OTP not generated')
         except (ValueError or requests.RequestException) as e:
-            print(f'{e.__str__}\n'
+            print(f'{e}\n'
                   'Error on Notifier.send_SMS_otp()\n')
             return None
 
