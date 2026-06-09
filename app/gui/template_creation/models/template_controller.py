@@ -6,7 +6,8 @@
 # Contributors:
 # -------------------------------------------------------------------------------
 
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
+import os
 from app.gui.template_creation.models.template_view import TemplateView
 from app.logic.models.Template_logic import TemplateLogic
 
@@ -25,6 +26,10 @@ class TemplateController:
         self.view = TemplateView(parent, self)
         self.db = self.app_context.get("database")
         self.logic = TemplateLogic(self.db)
+        self.editing_existing_template = False
+        self.view.set_title_text("Create Notification Template")
+        self.view.set_save_button_text("Save Template")
+        self.selected_image_path = None
 
         default_tags = [
             "Date",
@@ -34,7 +39,8 @@ class TemplateController:
             "Volunteer Request",
             "Restock Alert",
             "Holiday Hours",
-            "General Update"
+            "General Update",
+            "Image"
         ]
         self.view.set_default_tags(default_tags)
         self.load_existing_templates()
@@ -58,6 +64,7 @@ class TemplateController:
         subject = self.view.get_subject()
         selected_tag = self.view.get_tag_value()
         message = self.view.get_message()
+        image_path = self.selected_image_path
 
         if not template_name.strip():
             messagebox.showerror("Validation Error", "Template Name cannot be empty.")
@@ -78,6 +85,7 @@ class TemplateController:
                 subject=subject,
                 tags=selected_tag,
                 message=message,
+                image_path=image_path,
                 creator_id=1
             )
 
@@ -90,8 +98,17 @@ class TemplateController:
     def on_clear(self, event=None):
         """
         Clears all form fields in the Template Creation screen.
+        Unlock template name
+        Reset the page for creating new template
         """
         self.view.clear_form()
+        self.editing_existing_template = False
+        self.view.set_template_name_editable()
+        self.view.set_title_text("Create Notification Template")
+        self.view.set_save_button_text("Save Template")
+        self.selected_image_path = None
+        self.view.clear_image_path()
+        self.view.text_images = []
 
     def on_back(self, event=None):
         """
@@ -117,12 +134,26 @@ class TemplateController:
                 messagebox.showerror("Load Error", "Template not found.")
                 return
 
-            template_name, subject, tags, body_text = row
+            template_name, subject, tags, body_text, image_path = row
+
+            self.editing_existing_template = True
 
             self.view.set_template_name(template_name)
             self.view.set_subject(subject)
             self.view.set_tag_value(tags)
             self.view.set_message(body_text if body_text else "")
+
+            self.selected_image_path = image_path
+            if image_path:
+                self.view.set_image_path(os.path.basename(image_path))
+                self.view.insert_image_into_message(image_path)
+            else:
+                self.view.clear_image_path()
+                self.view.text_images = []
+
+            self.view.set_template_name_readonly()
+            self.view.set_title_text("Edit Notification Template")
+            self.view.set_save_button_text("Update Template")
 
         except Exception as e:
             messagebox.showerror("Database Error", f"Failed to load template: {e}")
@@ -133,5 +164,67 @@ class TemplateController:
         """
         selected_tag = self.view.get_tag_value()
         if selected_tag.strip():
-            self.view.insert_tag_into_message(selected_tag)
+            if selected_tag == "Image":
+                self.view.insert_tag_into_message("image")
+            else:
+                self.view.insert_tag_into_message(selected_tag)
+
+    def on_delete_template(self, event=None):
+        """
+        deletes the selected existing template
+        """
+        selected_name = self.view.get_selected_existing_template()
+        if not selected_name.strip():
+            messagebox.showerror("Delete Error", "Please select a template first.")
+            return
+
+        confirm = messagebox.askyesno(
+            "Confirm Delete",
+            f"Are you sure you want to delete template '{selected_name}'?"
+        )
+        if not confirm:
+            return
+
+        try:
+            self.logic.delete_template(selected_name)
+            messagebox.showinfo("Success", f"Template '{selected_name}' deleted successfully!")
+
+            self.view.clear_form()
+            self.editing_existing_template = False
+            self.view.set_template_name_editable()
+            self.view.set_title_text("Create Notification Template")
+            self.view.set_save_button_text("Save Template")
+            self.load_existing_templates()
+
+        except Exception as e:
+            messagebox.showerror("Database Error", f"Failed to delete template: {e}")
+
+    def on_upload_image(self, event=None):
+        """
+        lets the admin choose an image file for the template
+        """
+        file_path = filedialog.askopenfilename(
+            title="Select Image",
+            filetypes=[
+                ("Image Files", "*.png *.jpg *.jpeg *.gif"),
+                ("All Files", "*.*")
+            ]
+        )
+
+        if file_path:
+            self.selected_image_path = file_path
+            filename = os.path.basename(file_path)
+            self.view.set_image_path(filename)
+            self.view.insert_image_into_message(file_path)
+
+    def on_remove_image(self, event=None):
+        """
+        removes the selected image from the template
+        """
+        self.selected_image_path = None
+        self.view.clear_image_path()
+        current_message = self.view.get_message()
+        self.view.set_message(current_message)
+        self.view.text_images = []
+        messagebox.showinfo("Image Removed", "The image was removed.")
 

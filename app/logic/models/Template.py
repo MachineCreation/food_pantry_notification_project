@@ -4,7 +4,7 @@
 # Author: Joseph Egan
 # 2026-05-17
 # Sources:
-# Contributors:
+# Contributors: Lloyd Truong
 # -------------------------------------------------------------------------------
 # Description: Class to handle and store Template objects for use in sending
 # notifications
@@ -14,31 +14,29 @@ from app.database.models.Database import Database
 
 # python imports
 # from typing import List
-from datetime import datetime
 
 
 class Template():
 
     __all_templates = {}
 
-    def __init__(
-            self,
-            template_id: int,
-            template_name: str,
-            creator_id: int,
-            subject: str,
-            template_body: str,
-            tags: str,  # change this to a list
-            c_date: datetime,
-            image_path: str | None = None
-    ) -> None:
+    def __init__(self,
+                 template_id,
+                 template_name,
+                 creator_id,
+                 subject,
+                 template_body,
+                 tags,
+                 created_date,
+                 image_path=None):
         self.__template_id = template_id
         self.__template_name = template_name
         self.__creator_id = creator_id
         self.__subject = subject
         self.__template_body = template_body
         self.__tags = tags
-        self.__created_date = c_date
+        self.__created_date = created_date
+        self.__image_path = image_path
 
 # ----------------------------------- properties ------------------------------
     @property
@@ -87,6 +85,13 @@ class Template():
     def created_date(self):
         return self.__created_date
 
+    @property
+    def image_path(self):
+        '''
+        image path of template
+        '''
+        return self.__image_path
+
 # --------------------------------- class methods -----------------------------
     @classmethod
     def get_all_templates(
@@ -100,10 +105,6 @@ class Template():
         templates_tuples = database.get_all_templates()
 
         for template in templates_tuples:
-
-            # template tuple format:
-            # (template_id, template_name, creator_id, subject, template_body,
-            # tags, created_date)
             cls.__all_templates[template[1]] = Template(*template)
 
     # --------------------
