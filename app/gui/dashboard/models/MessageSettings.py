@@ -200,7 +200,6 @@ class MessageSettings(FrameBase):
         otp = Notification.send_sms_otp(
             recipient
         )
-        print(f"OTP sent: {otp}")
 
         if otp:
             showinfo(

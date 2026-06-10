@@ -172,7 +172,7 @@ class Notification():
 
             # send notification
             for recipient in recipients:
-                if recipient[2] in ['email', 'Both']:
+                if recipient[2].lower() in ['email', 'both']:
                     sent = notifier.process_emails(
                         self.__date,
                         self.__subject,
@@ -180,7 +180,7 @@ class Notification():
                         recipient[0]
                     )
 
-                if recipient[2] in ['sms', 'Both']:
+                if recipient[2].lower() in ['sms', 'both']:
                     sent = notifier.process_sms(
                         self.__subject,
                         self.__message,
