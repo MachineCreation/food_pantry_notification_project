@@ -155,6 +155,7 @@ class TemplateView:
         self.set_tag_value("")
         self.set_message("")
         self.clear_image_path()
+        self.text_images = []
 
         existing_template_widget = self.builder.get_object("existing_templates_combobox")
         existing_template_widget.set("")

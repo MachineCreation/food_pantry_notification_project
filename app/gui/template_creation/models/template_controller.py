@@ -8,6 +8,8 @@
 
 from tkinter import messagebox, filedialog
 import os
+import shutil
+from pathlib import Path
 from app.gui.template_creation.models.template_view import TemplateView
 from app.logic.models.Template_logic import TemplateLogic
 
@@ -141,12 +143,21 @@ class TemplateController:
             self.view.set_template_name(template_name)
             self.view.set_subject(subject)
             self.view.set_tag_value(tags)
+            self.view.text_images = []
             self.view.set_message(body_text if body_text else "")
 
             self.selected_image_path = image_path
             if image_path:
-                self.view.set_image_path(os.path.basename(image_path))
-                self.view.insert_image_into_message(image_path)
+                project_root = Path(__file__).resolve().parents[4]
+                full_image_path = project_root / image_path
+
+                if full_image_path.exists():
+                    self.view.set_image_path(os.path.basename(image_path))
+                    self.view.insert_image_into_message(str(full_image_path))
+                else:
+                    self.view.clear_image_path()
+                    self.view.text_images = []
+                    messagebox.showwarning("Missing Image", "The saved image file could not be found.")
             else:
                 self.view.clear_image_path()
                 self.view.text_images = []
@@ -202,6 +213,8 @@ class TemplateController:
     def on_upload_image(self, event=None):
         """
         lets the admin choose an image file for the template
+        copies it into the shared template images folder and
+        saves the relative path
         """
         file_path = filedialog.askopenfilename(
             title="Select Image",
@@ -211,11 +224,35 @@ class TemplateController:
             ]
         )
 
-        if file_path:
-            self.selected_image_path = file_path
-            filename = os.path.basename(file_path)
-            self.view.set_image_path(filename)
-            self.view.insert_image_into_message(file_path)
+        if not file_path:
+            return
+
+        try:
+            project_root = Path(__file__).resolve().parents[4]
+            images_folder = project_root / "app" / "gui" / "template_creation" / "images"
+            images_folder.mkdir(parents=True, exist_ok=True)
+
+            original_name = os.path.basename(file_path)
+            destination_path = images_folder / original_name
+
+            # avoid overwriting files with the same name
+            counter = 1
+            stem = destination_path.stem
+            suffix = destination_path.suffix
+            while destination_path.exists():
+                destination_path = images_folder / f"{stem}_{counter}{suffix}"
+                counter += 1
+
+            shutil.copy(file_path, destination_path)
+
+            relative_path = str(destination_path.relative_to(project_root))
+
+            self.selected_image_path = relative_path
+            self.view.set_image_path(os.path.basename(relative_path))
+            self.view.insert_image_into_message(str(destination_path))
+
+        except Exception as e:
+            messagebox.showerror("Image Error", f"Failed to upload image: {e}")
 
     def on_remove_image(self, event=None):
         """
