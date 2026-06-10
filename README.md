@@ -23,6 +23,15 @@ This repository contains a desktop GUI app that currently supports:
 - template creation screen
 - input validation utilities
 - SQL Server database connection and basic user auth/signup operations
+- database setup, rebuild, and seed helper scripts
+
+## For Users
+
+This app is intended for food pantry staff who need a desktop tool to manage sign-in, create and send notifications, review notification logs, and build reusable templates.
+
+## For Developers
+
+This repository is intended for developers who want to run, maintain, or extend the application. The main setup points are the Python environment, `.env` configuration, `main.py` for startup, and the database helper scripts in the project root.
 
 ## Tech Stack
 
@@ -127,36 +136,79 @@ Note: these tests are not a full `pytest` assertion suite yet. They are function
 
 ```text
 food_pantry_notification_project/
-|-- main.py
+|-- LICENSE
+|-- README.md
 |-- env.py
-|-- requirements.txt
+|-- main.py
 |-- rebuild_database.py
-|-- populate_users.py
+|-- requirements.txt
 |-- test.py
-|-- tests/
-|   |-- test_database.py
-|   |-- test_run.py
-|   `-- test_validation.py
-`-- app/
-	|-- database/
-	|   |-- models/
-	|   |   `-- Database.py
-	|   `-- setup/
-	|       |-- create_database.py
-	|       `-- drop_tables.py
-	|-- gui/
-	|   |-- GUI.py
-	|   |-- dashboard/
-	|   |   `-- models/DashBoard.py
-	|   |-- log_in_out/
-	|   |   `-- models/
-	|   |-- notification_log/
-	|   |-- send_notification/
-	|   |-- template_creation/
-	|   `-- utilities/
-	`-- logic/
-		|-- models/
-		`-- utilities/
+|-- user_info.py
+|-- app/
+|   |-- database/
+|   |   |-- models/
+|   |   |   |-- Database.py
+|   |   |   |-- LogRecordSQL.py
+|   |   |   `-- Notifier.py
+|   |   `-- setup/
+|   |       |-- create_database.py
+|   |       `-- drop_tables.py
+|   |-- gui/
+|   |   |-- GUI.py
+|   |   |-- dashboard/
+|   |   |   |-- models/
+|   |   |   |   |-- DashBoard.py
+|   |   |   |   `-- MessageSettings.py
+|   |   |   `-- ui/
+|   |   |       |-- dashboard.ui
+|   |   |       `-- message_settings.ui
+|   |   |-- log_in_out/
+|   |   |   |-- models/
+|   |   |   |   |-- SignIn.py
+|   |   |   |   |-- SignInUpChoice.py
+|   |   |   |   `-- SignUp.py
+|   |   |   `-- ui/
+|   |   |       |-- sign_in.ui
+|   |   |       |-- sign_up.ui
+|   |   |       `-- signin_up_choice.ui
+|   |   |-- notification_log/
+|   |   |   `-- NotificationLog.py
+|   |   |-- send_notification/
+|   |   |   |-- models/
+|   |   |   |   `-- SendNotification.py
+|   |   |   `-- ui/
+|   |   |       |-- send_notification.ui
+|   |   |       `-- send_notification_old.ui
+|   |   |-- template_creation/
+|   |   |   |-- models/
+|   |   |   |   |-- template_controller.py
+|   |   |   |   |-- template_frame.py
+|   |   |   |   `-- template_view.py
+|   |   |   `-- ui/
+|   |   |       `-- template.ui
+|   |   `-- utilities/
+|   |       |-- EntryBehavior.py
+|   |       |-- ToolTip.py
+|   |       |-- routes.py
+|   |       `-- models/
+|   |           `-- FrameBase.py
+|   `-- logic/
+|       |-- models/
+|       |   |-- LogRecord.py
+|       |   |-- Notification.py
+|       |   |-- Template.py
+|       |   |-- Template_logic.py
+|       |   `-- User.py
+|       `-- utilities/
+|           `-- validation.py
+`-- tests/
+    |-- test_database.py
+    |-- test_log_record.py
+    |-- test_log_record_sql.py
+    |-- test_notification_log_logic.py
+    |-- test_run.py
+    |-- test_template.py
+    `-- test_validation.py
 ```
 
 ## License
