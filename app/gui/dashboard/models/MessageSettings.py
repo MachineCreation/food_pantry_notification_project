@@ -51,8 +51,14 @@ class MessageSettings(FrameBase):
         )
 
         self.__save_button: ttk.Button = \
-            self._builder.get_object("verify_button")
+            self._builder.get_object("save_button")
         self.__save_button.configure(
+            command=self.save_note_type
+        )
+
+        self.__verify_button: ttk.Button = \
+            self._builder.get_object("verify_button")
+        self.__verify_button.configure(
             command=self.verify_code
         )
 
@@ -179,6 +185,7 @@ class MessageSettings(FrameBase):
         selected_type = self.__message_type_entry.get()
         if selected_type in ["SMS", "Both"]:
             self.__phone_number_entry.configure(state="normal")
+            self.__save_button.grid_remove()
 
         else:
             self.__phone_number_entry.configure(state="normal")
@@ -186,6 +193,7 @@ class MessageSettings(FrameBase):
             self.__phone_number_entry.configure(state="disabled")
             self.__send_verification_button.grid_remove()
             self.__verification_label_frame.grid_remove()
+            self.__save_button.grid()
 
     # --------------------
     def send_verification(self):
@@ -237,7 +245,7 @@ class MessageSettings(FrameBase):
             valid = False
 
         if valid:
-            showwarning(
+            showinfo(
                 "Verification Successful",
                 "Your phone number has been verified."
             )
@@ -287,6 +295,23 @@ class MessageSettings(FrameBase):
         self.__message_type_entry.set(
             self._app_context['user'].notification_type
         )
+
+    # --------------------
+    def save_note_type(self) -> None:
+        '''
+        save the selected message type to the database
+        '''
+        selected_type = self.__message_type_entry.get()
+        self._app_context['user'].update_notification_type(
+            selected_type,
+            self._app_context['database']
+        )
+        showinfo(
+            "Notification Preference Updated",
+            f"Your notification preference has been updated to {selected_type}"
+            "."
+        )
+        self.send_to_route("dashboard")
 
     # --------------------
     def clear_fields(self):

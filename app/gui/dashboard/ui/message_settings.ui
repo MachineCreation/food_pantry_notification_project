@@ -118,7 +118,17 @@
               <object class="ttk.Button" id="clear_button" named="True">
                 <property name="text" translatable="yes">Clear</property>
                 <layout manager="grid">
-                  <property name="column">3</property>
+                  <property name="column">2</property>
+                  <property name="padx">5</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="ttk.Button" id="save_button" named="True">
+                <property name="text" translatable="yes">Save</property>
+                <layout manager="grid">
+                  <property name="column">1</property>
                   <property name="padx">5</property>
                   <property name="row">0</property>
                 </layout>
