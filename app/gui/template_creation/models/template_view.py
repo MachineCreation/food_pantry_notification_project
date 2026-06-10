@@ -8,6 +8,7 @@
 
 from pathlib import Path
 import pygubu
+from PIL import Image, ImageTk
 
 
 class TemplateView:
@@ -15,6 +16,8 @@ class TemplateView:
         self.__parent = parent
         self.controller = controller
         self.builder = pygubu.Builder()
+        self.preview_image = None
+        self.text_images = []
 
         # Load the UI file
         ui_path = Path(__file__).parent.parent / "ui" / "template.ui"
@@ -86,6 +89,7 @@ class TemplateView:
         fills the Template Name field with the given value
         """
         widget = self.builder.get_object("entry1")
+        widget.config(state="normal")  # temporarily normal
         widget.delete(0, "end")
         widget.insert(0, value)
 
@@ -117,6 +121,22 @@ class TemplateView:
         message_widget.insert("insert", "{" + tag_value + "} ")
         message_widget.focus_set()
 
+    def insert_image_into_message(self, file_path):
+        """
+        inserts the image into the message text box
+        """
+        widget = self.builder.get_object("message_text")
+
+        image = Image.open(file_path)
+        image.thumbnail((220, 220))
+
+        tk_image = ImageTk.PhotoImage(image)
+        self.text_images.append(tk_image)
+
+        widget.insert("insert", "\n")
+        widget.image_create("insert", image=tk_image)
+        widget.insert("insert", "\n")
+
     def set_message(self, value):
         """
         fills the Message text box with the given value
@@ -129,10 +149,62 @@ class TemplateView:
         """
         clears all editable fields in the Template Creation form.
         """
+        self.set_template_name_editable()
         self.set_template_name("")
         self.set_subject("")
         self.set_tag_value("")
         self.set_message("")
+        self.clear_image_path()
 
         existing_template_widget = self.builder.get_object("existing_templates_combobox")
         existing_template_widget.set("")
+
+    def clear_image_preview(self):
+        """
+        clears the image preview
+        """
+        widget = self.builder.get_object("image_preview_label")
+        widget.config(image="", text="No image selected")
+        self.preview_image = None
+
+    def set_template_name_readonly(self):
+        """
+        template name stays readonly while editing
+        """
+        widget = self.builder.get_object("entry1")
+        widget.config(state="readonly")
+
+    def set_template_name_editable(self):
+        """
+        makes the template name field typeable again
+        """
+        widget = self.builder.get_object("entry1")
+        widget.config(state="normal")
+
+    def set_title_text(self, value):
+        """
+        update the page title label text
+        """
+        widget = self.builder.get_object("template_title_label")
+        widget.config(text=value)
+
+    def set_save_button_text(self, value):
+        """
+        updates the save button text
+        """
+        widget = self.builder.get_object("save_button")
+        widget.config(text=value)
+
+    def set_image_path(self, value):
+        """
+        shows the selected image file name
+        """
+        widget = self.builder.get_object("image_path_label")
+        widget.config(text=value if value else "No image selected")
+
+    def clear_image_path(self):
+        """
+        clears the selected image display
+        """
+        widget = self.builder.get_object("image_path_label")
+        widget.config(text="No image selected")

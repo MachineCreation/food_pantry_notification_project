@@ -19,7 +19,7 @@ class TemplateLogic:
 
     def get_existing_template_names(self):
         """
-        Returns all template names from the TEMPLATE table.
+        returns all template names from the TEMPLATE table
 
         :return: list of template name strings
         """
@@ -41,7 +41,8 @@ class TemplateLogic:
                 template_name,
                 subject,
                 tags,
-                template_body
+                template_body,
+                image_path
             FROM TEMPLATE
             WHERE template_name = %s;
             """,
@@ -50,7 +51,7 @@ class TemplateLogic:
         )
         return row
 
-    def save_template_and_message(self, template_name, subject, tags, message, creator_id=1):
+    def save_template_and_message(self, template_name, subject, tags, message, image_path=None, creator_id=1):
         """
         Saves template data to TEMPLATE and message body to NOTIFICATIONS.
         :param template_name: template name
@@ -78,21 +79,22 @@ class TemplateLogic:
                 UPDATE TEMPLATE
                 SET subject = %s,
                     tags = %s,
-                    template_body = %s
+                    template_body = %s,
+                    image_path = %s
                 WHERE template_id = %s;
                 """,
-                (subject, tags, message, template_id),
+                (subject, tags, message, image_path, template_id),
                 fetch_all=False
             )
         else:
             self.__db.execute_query(
                 """
                 INSERT INTO TEMPLATE
-                    (template_name, creator_id, subject, template_body, tags, created_date)
+                    (template_name, creator_id, subject, template_body, tags, image_path, created_date)
                 VALUES
-                    (%s, %s, %s, %s, %s, GETDATE());
+                    (%s, %s, %s, %s, %s, %s, GETDATE());
                 """,
-                (template_name, creator_id, subject, message, tags),
+                (template_name, creator_id, subject, message, tags, image_path),
                 fetch_all=False
             )
 
@@ -108,3 +110,16 @@ class TemplateLogic:
             template_id = new_row[0]
 
         return template_id
+
+    def delete_template(self, template_name):
+        """
+        deletes a template by template name
+        """
+        self.__db.execute_query(
+            """
+            DELETE FROM TEMPLATE
+            WHERE template_name = %s;
+            """,
+            (template_name,),
+            fetch_all=False
+        )
