@@ -78,7 +78,7 @@ class Notification():
         return self.__image_id
 
     @property
-    def num_recipients(self) -> int | None: 
+    def num_recipients(self) -> int | None:
         '''
         get the number of recipients of the notification
         :return: the number of recipients of the notification
