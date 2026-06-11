@@ -146,7 +146,6 @@ class DashBoard(FrameBase):
 
         if role != 3:
             self.__create_template_button.destroy()
-            self.__manage_settings_button.destroy()
             self.__notification_log_button.destroy()
 
         else:

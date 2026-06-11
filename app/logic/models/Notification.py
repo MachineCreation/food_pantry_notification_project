@@ -167,12 +167,15 @@ class Notification():
                 notifier = app_context['notifier'] = Notifier()
 
             # get recipients from database
-            recipients: List[Tuple[str, int, str]] = database.get_recipients()
+            recipients: List[Tuple[str, str, str]] = database.get_recipients()
             self.__num_recipients: int = len(recipients)
 
             # send notification
+            print(recipients)
             for recipient in recipients:
-                if recipient[2].lower() in ['email', 'both']:
+                print(f'handling recipient {recipient}')
+                if str(recipient[2]).lower() in ['email', 'both']:
+                    print(recipient[0])
                     sent = notifier.process_emails(
                         self.__date,
                         self.__subject,
@@ -180,12 +183,15 @@ class Notification():
                         recipient[0]
                     )
 
-                if recipient[2].lower() in ['sms', 'both']:
+                if str(recipient[2]).lower() in ['sms', 'both']:
                     sent = notifier.process_sms(
                         self.__subject,
                         self.__message,
                         recipient[1]
                     )
+
+                else:
+                    sent = True
 
                 if not sent:
                     raise ValueError('Emails not sent')

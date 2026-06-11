@@ -568,7 +568,7 @@ class Database:
             return False
 
 # ------------------------ notification log methods ---------------------------
-    def get_recipients(self) -> List[Tuple[str, int, str]]:
+    def get_recipients(self) -> List[Tuple[str, str, str]]:
         '''
         gets a list of subscriber emails from the database and passes it
             forward
@@ -587,6 +587,7 @@ class Database:
                     fetch_all=True
                 )
             )
+            print(recipients)
             return recipients
         except ValueError or pymssql.Error:
             print('no recipients returned from database.get_recipients')

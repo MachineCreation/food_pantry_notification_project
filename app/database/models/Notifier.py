@@ -122,7 +122,8 @@ class Notifier():
         send sms to listed recipients using textbelt API
         :param subject: string subject of the sms
         :param message: string message content of the sms
-        :param recipient: list of str phone number and int user id to send the sms to
+        :param recipient: list of str phone number and int user id to send the
+            sms to
         :return: boolean indicating success or failure of the sms sending
             operation
         '''
